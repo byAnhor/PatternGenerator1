@@ -47,30 +47,6 @@ PXCM = 1.0/35.43307
 
 # résolution de l'équation du troisième degré par la méthode de Cardan 
  
-class My_CubicBezier():
-    def __init__(self,**kwargs):
-        self._from = kwargs.get('P1')
-        self._fromcontrol = kwargs.get('C1')
-        self._tocontrol = kwargs.get('C2')
-        self._to = kwargs.get('P2')
-        assert isinstance(self._from, byA_Point)
-        assert isinstance(self._fromcontrol, byA_Point)
-        assert isinstance(self._tocontrol, byA_Point)
-        assert isinstance(self._to, byA_Point)
-        self._cubicbezier = CubicBezier(self._from.toRI(), self._fromcontrol.toRI(), self._tocontrol.toRI(), self._to.toRI())
-    def toStr(self):
-        return Path(self._cubicbezier).d()
-    def reverse(self):
-        return My_CubicBezier(P1=self._to, C1=self._tocontrol, C2=self._fromcontrol, P2=self._from)
-    def split(self, t):
-        P12 = self._from + t*(self._fromcontrol - self._from)
-        P23 = self._fromcontrol + t*(self._tocontrol - self._fromcontrol)
-        P34 = self._tocontrol + t*(self._to - self._tocontrol)
-        P123 = P12 + t*(P23-P12)
-        P234 = P23 + t*(P34-P23)
-        P1234 = P123 + t*(P234-P123)
-        return (My_CubicBezier(P1 = self._from, C1 = P12, C2 = P123, P2 = P1234),
-                My_CubicBezier(P1 = P1234, C1 = P234, C2 = P34, P2 = self._to))
             
 class My_Path():
     def __init__(self, *segments, **kw):

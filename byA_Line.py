@@ -4,7 +4,7 @@ Created on Mon Dec 18 15:45:41 2017
 
 @author: byAnhor
 """
-from svgpathtools import svg2paths, Path, Line, QuadraticBezier, CubicBezier, Arc, parse_path
+from svgpathtools import Line, Path
 from byA_FrozenClass import byA_FrozenClass
 from byA_Point import byA_Point
 
