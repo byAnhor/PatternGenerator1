@@ -41,3 +41,14 @@ class byA_Point():
             self.translate(centerot._x,centerot._y)
     def toRI(self):
         return complex(self._x,self._y)
+
+if __name__ == '__main__':
+
+    pt1 = byA_Point(x=0,y=0,name="O")
+    pt2 = byA_Point(x=5,y=10,name="A")
+    pt3 = pt1+2*pt2
+    print pt1.toRI()
+    print pt2.toRI()
+    print pt3.toRI()
+    
+    
