@@ -16,6 +16,9 @@ import subprocess
 from PyPDF2 import PdfFileWriter
 from PIL import Image
 from fpdf import FPDF
+from byA_FrozenClass import byA_FrozenClass
+from byA_Point import byA_Point
+from byA_Line import byA_Line
 
 def makePdf(pdfFileName, listPages, w, h):
 
@@ -42,68 +45,18 @@ def makePdf(pdfFileName, listPages, w, h):
 CMPX = 1.0
 PXCM = 1.0/35.43307
 
-class FrozenClass(object):
-  """ When a class herits from this mother class, it cannot create new attributes that have not been 
-      already declared in __init__ method   
-  """
-  __isFrozen = False
-  def __setattr__(self, attr, value):
-    if self.__isFrozen and not hasattr(self, attr):
-      raise TypeError("%r is a frozen class, please declare attribute %r in __init__" % (self.__class__.__name__, attr))
-    super(FrozenClass, self).__setattr__(attr, value)
-
-  def _freeze(self, instance):
-    if (self.__class__.__name__ == instance):
-      self.__isFrozen = True
-
 # résolution de l'équation du troisième degré par la méthode de Cardan 
  
-class Point():
-    def __init__(self,**kwargs):
-        self._name = kwargs.get('name', "O")
-        if 'c' not in kwargs:
-            self._x = kwargs.get('x', 0)
-            self._y = kwargs.get('y', 0)
-        else:
-            c = kwargs.get('c', 0+0j)
-            self._x = c.real
-            self._y = c.imag
-        self._drawn = kwargs.get('drawn', False)
-        #print "Point", self._name," (", getattr(self,'_x'), ",", getattr(self,'_y'), ")"
-    def __add__(self, other):  # Equivalent of + operator
-        return Point(x=self._x + other._x, y=self._y + other._y, name=self._name, drawn = self._drawn)
-    def __sub__(self, other):  # Equivalent of - operator
-        return Point(x=self._x - other._x, y=self._y - other._y, name=self._name, drawn = self._drawn)
-    def __mul__(self, other):  # Equivalent of * operator
-        return Point(x=self._x * other, y=self._y * other, name=self._name, drawn = self._drawn)
-    def __rmul__(self, other):  # Equivalent of * operator
-        return Point(x=self._x * other, y=self._y * other, name=self._name, drawn = self._drawn)
-    def translate(self, dx, dy):  
-        self._x += dx
-        self._y += dy
-    def rotate(self, degre, centerot = None):  # Equivalent of * operator
-        if centerot is None:
-            x = self._x * math.cos(math.radians(degre)) - self._y * math.sin(math.radians(degre))
-            y = self._x * math.sin(math.radians(degre)) + self._y * math.cos(math.radians(degre))
-            self._x = x
-            self._y = y
-        else:
-            self.translate(-centerot._x,-centerot._y)
-            self.rotate(degre)
-            self.translate(centerot._x,centerot._y)
-    def toRI(self):
-        return complex(self._x,self._y)
-
 class My_CubicBezier():
     def __init__(self,**kwargs):
         self._from = kwargs.get('P1')
         self._fromcontrol = kwargs.get('C1')
         self._tocontrol = kwargs.get('C2')
         self._to = kwargs.get('P2')
-        assert isinstance(self._from, Point)
-        assert isinstance(self._fromcontrol, Point)
-        assert isinstance(self._tocontrol, Point)
-        assert isinstance(self._to, Point)
+        assert isinstance(self._from, byA_Point)
+        assert isinstance(self._fromcontrol, byA_Point)
+        assert isinstance(self._tocontrol, byA_Point)
+        assert isinstance(self._to, byA_Point)
         self._cubicbezier = CubicBezier(self._from.toRI(), self._fromcontrol.toRI(), self._tocontrol.toRI(), self._to.toRI())
     def toStr(self):
         return Path(self._cubicbezier).d()
@@ -119,43 +72,33 @@ class My_CubicBezier():
         return (My_CubicBezier(P1 = self._from, C1 = P12, C2 = P123, P2 = P1234),
                 My_CubicBezier(P1 = P1234, C1 = P234, C2 = P34, P2 = self._to))
             
-class My_Line():
-    def __init__(self,**kwargs):
-        self._from = kwargs.get('P1')
-        self._to = kwargs.get('P2')
-        assert isinstance(self._from, Point)
-        assert isinstance(self._to, Point)
-        self._line = Line(self._from.toRI(), self._to.toRI())
-    def toStr(self):
-        return Path(self._line).d()
-
 class My_Path():
     def __init__(self, *segments, **kw):
         self._segments = Path()
         for p in segments:
-            assert isinstance(p, My_Line) or isinstance(p, My_CubicBezier)  
-            if isinstance(p, My_Line):
+            assert isinstance(p, byA_Line) or isinstance(p, My_CubicBezier)  
+            if isinstance(p, byA_Line):
                 self.insert(-1, p)   
             if isinstance(p, My_CubicBezier):
                 self.insert(-1, p)   
         if 'closed' in kw:
             self._segments.closed = kw['closed']  # DEPRECATED
     def insert(self, index, value):
-        assert isinstance(value, My_Line) or isinstance(value, My_CubicBezier)  
-        if isinstance(value, My_Line):
-            self._segments.insert(index, value._line)   
+        assert isinstance(value, byA_Line) or isinstance(value, My_CubicBezier)  
+        if isinstance(value, byA_Line):
+            self._segments.insert(index, value._svgline)   
         if isinstance(value, My_CubicBezier):
             self._segments.insert(index, value._cubicbezier)   
     def append(self, value):
-        assert isinstance(value, My_Line) or isinstance(value, My_CubicBezier)  
-        if isinstance(value, My_Line):
-            self._segments.append(value._line)   
+        assert isinstance(value, byA_Line) or isinstance(value, My_CubicBezier)  
+        if isinstance(value, byA_Line):
+            self._segments.append(value._svgline)   
         if isinstance(value, My_CubicBezier):
             self._segments.append(value._cubicbezier)   
     def d(self):
         return self._segments.d()
 
-class Pattern_Generator(FrozenClass):
+class Pattern_Generator(byA_FrozenClass):
 
      def __init__(self,**kwargs):
         """Constructor
@@ -247,8 +190,8 @@ class Pattern_Generator(FrozenClass):
         self._svg_file.save()
         
      def get_equation_line(self, src, dst):
-        assert isinstance(src, Point)
-        assert isinstance(dst, Point)
+        assert isinstance(src, byA_Point)
+        assert isinstance(dst, byA_Point)
         assert not src._x == dst._x
         # y = ax+b
         # src._y = a*src._x + b
@@ -257,14 +200,14 @@ class Pattern_Generator(FrozenClass):
         return [a, src._y-a*src._x]
         
      def get_distance(self, src, dst):
-        assert isinstance(src, Point)
-        assert isinstance(dst, Point)
+        assert isinstance(src, byA_Point)
+        assert isinstance(dst, byA_Point)
         return math.sqrt((src._y-dst._y)**2+(src._x-dst._x)**2)
         
      def combinaison_lineaire(self, A,B,u,v):
-        assert isinstance(A, Point)
-        assert isinstance(B, Point)
-        return Point(x = A._x*u+B._x*v, y = A._y*u+B._y*v)
+        assert isinstance(A, byA_Point)
+        assert isinstance(B, byA_Point)
+        return byA_Point(x = A._x*u+B._x*v, y = A._y*u+B._y*v)
     
      def interpolation_lineaire(self, A,B,t):
         return combinaison_lineaire(A,B,t,1-t)
@@ -274,7 +217,7 @@ class Pattern_Generator(FrozenClass):
         y=t*t
         A = self.combinaison_lineaire(points_control[0],points_control[1],(1-t)*x,3*t*x)
         B = self.combinaison_lineaire(points_control[2],points_control[3],3*y*(1-t),y*t)
-        return Point(x = A._x+B._x, y = A._y+B._y)
+        return byA_Point(x = A._x+B._x, y = A._y+B._y)
     
      def courbe_bezier_3(self, points_control,N):
         if len(points_control) != 4:
@@ -338,23 +281,23 @@ class Pattern_Generator(FrozenClass):
         return Z
         
      def get_sub_curves(self, P0, P1, P2, P3, t):
-        assert isinstance(P0, Point)
-        assert isinstance(P1, Point)
-        assert isinstance(P2, Point)
-        assert isinstance(P3, Point)
-        P11t = Point(x=(1-t)*P0._x+t*P1._x,y=(1-t)*P0._y+t*P1._y, name="") 
-        P12t = Point(x=(1-t)*P1._x+t*P2._x,y=(1-t)*P1._y+t*P2._y, name="") 
-        P13t = Point(x=(1-t)*P2._x+t*P3._x,y=(1-t)*P2._y+t*P3._y, name="")
-        P21t = Point(x=(1-t)*P11t._x+t*P12t._x,y=(1-t)*P11t._y+t*P12t._y, name="")
-        P22t = Point(x=(1-t)*P12t._x+t*P13t._x,y=(1-t)*P12t._y+t*P13t._y, name="")
-        P31t = Point(x=(1-t)*P21t._x+t*P22t._x,y=(1-t)*P21t._y+t*P22t._y, name="")
+        assert isinstance(P0, byA_Point)
+        assert isinstance(P1, byA_Point)
+        assert isinstance(P2, byA_Point)
+        assert isinstance(P3, byA_Point)
+        P11t = byA_Point(x=(1-t)*P0._x+t*P1._x,y=(1-t)*P0._y+t*P1._y, name="") 
+        P12t = byA_Point(x=(1-t)*P1._x+t*P2._x,y=(1-t)*P1._y+t*P2._y, name="") 
+        P13t = byA_Point(x=(1-t)*P2._x+t*P3._x,y=(1-t)*P2._y+t*P3._y, name="")
+        P21t = byA_Point(x=(1-t)*P11t._x+t*P12t._x,y=(1-t)*P11t._y+t*P12t._y, name="")
+        P22t = byA_Point(x=(1-t)*P12t._x+t*P13t._x,y=(1-t)*P12t._y+t*P13t._y, name="")
+        P31t = byA_Point(x=(1-t)*P21t._x+t*P22t._x,y=(1-t)*P21t._y+t*P22t._y, name="")
         return (P0, P11t, P21t, P31t),(P31t, P22t, P13t, P3)            
         
      def get_curve_distance(self, src, P1, P2, dst):
-        assert isinstance(src, Point)
-        assert isinstance(dst, Point)
-        assert isinstance(P1, Point)
-        assert isinstance(P2, Point)
+        assert isinstance(src, byA_Point)
+        assert isinstance(dst, byA_Point)
+        assert isinstance(P1, byA_Point)
+        assert isinstance(P2, byA_Point)
         l = self.get_distance(src,dst)
         points = self.courbe_bezier_3([src,P1,P2,dst],l*10)
         res = 0
@@ -364,8 +307,8 @@ class Pattern_Generator(FrozenClass):
         
 
      def draw_line(self, group, src, dst, svgId, thickness, drawExtrem=True):
-        assert isinstance(src, Point)
-        assert isinstance(dst, Point)
+        assert isinstance(src, byA_Point)
+        assert isinstance(dst, byA_Point)
         line = self._svg_file.line(start = (src._x*PXCM*cm, src._y*PXCM*cm), 
                                    end = (dst._x*PXCM*cm, dst._y*PXCM*cm), 
                                    id = str(src._name)+str(dst._name)+str(svgId)) 
@@ -378,20 +321,20 @@ class Pattern_Generator(FrozenClass):
                 self.draw_point(group, dst)
                 
      def compute_curve_from_to_through(self, pFrom, pThrough, pTo, t, pFromCoeffA, pFromCoeffB, svgId, svgStroke):
-        assert isinstance(pFrom, Point)
-        assert isinstance(pTo, Point)
-        assert isinstance(pThrough, Point)
+        assert isinstance(pFrom, byA_Point)
+        assert isinstance(pTo, byA_Point)
+        assert isinstance(pThrough, byA_Point)
 
         P2y = pTo._y
         P1y = (pThrough._y - pFrom._y*(1-t)**3 - 3*P2y*t**2*(1-t) - pTo._y*t**3) / (3*t*(1-t)**2)
         P1x = (pFrom._x * (1+pFromCoeffA**2) + pFromCoeffA*pFromCoeffB - pFromCoeffA*P1y)
         P2x = (pThrough._x - pFrom._x*(1-t)**3 - 3*P1x*t*(1-t)**2 - pTo._x*t**3) / (3*t**2*(1-t))
-        bezier = My_CubicBezier(P1 = pFrom, C1 = Point(x=P1x,y=P1y), C2 = Point(x=P2x,y=P2y), P2 = pTo)
-        dist = pattern.get_curve_distance(pFrom, Point(x=P1x, y=P1y), Point(x=P2x, y=P2y), pTo)
+        bezier = My_CubicBezier(P1 = pFrom, C1 = byA_Point(x=P1x,y=P1y), C2 = byA_Point(x=P2x,y=P2y), P2 = pTo)
+        dist = pattern.get_curve_distance(pFrom, byA_Point(x=P1x, y=P1y), byA_Point(x=P2x, y=P2y), pTo)
         return bezier, dist
 
      def draw_point(self, group, src, svgColor='red'):
-        assert isinstance(src, Point)
+        assert isinstance(src, byA_Point)
         subgroup = group.add(self._svg_file.g(id=group.get_id()+"spot"+src._name))
         subgroup.add(self._svg_file.circle(center=(src._x*PXCM*cm, src._y*PXCM*cm), r=str(0.03*PXCM)+'cm', fill='red'))
         subgroup.add(self._svg_file.text(src._name, insert=((src._x+0.1)*PXCM*cm, (src._y-0.1)*PXCM*cm), fill='black'))
@@ -403,8 +346,8 @@ class Pattern_Generator(FrozenClass):
         bh = pattern._points['Bback']._x-pattern._points['Hback']._x;
         delta = 0.1*bh
         self._front_neckline_base_curve = My_CubicBezier(P1 = self._points['Cfront'],
-                              C1 = Point(x=0.2*self._points['Cfront']._x+0.8*self._points['Jfront']._x,y=self._points['Jfront']._y),
-                              C2 = Point(x=self._points['Ifront']._x+delta,y=self._points['Ifront']._y-delta/equaLIa), 
+                              C1 = byA_Point(x=0.2*self._points['Cfront']._x+0.8*self._points['Jfront']._x,y=self._points['Jfront']._y),
+                              C2 = byA_Point(x=self._points['Ifront']._x+delta,y=self._points['Ifront']._y-delta/equaLIa), 
                               P2 = self._points['Ifront'])        
 
      def compute_back_neckline_base_curve(self):
@@ -413,42 +356,42 @@ class Pattern_Generator(FrozenClass):
         bh = pattern._points['Bback']._x-pattern._points['Hback']._x;
         delta = 0.02*bh
         self._back_neckline_base_curve = My_CubicBezier(P1 = self._points['Bback'],
-                              C1 = Point(x=0.1*self._points['Bback']._x+0.9*self._points['Hback']._x,y=self._points['Hback']._y),
-                              C2 = Point(x=self._points['Iback']._x+delta,y=self._points['Iback']._y-delta/equaLIa), 
+                              C1 = byA_Point(x=0.1*self._points['Bback']._x+0.9*self._points['Hback']._x,y=self._points['Hback']._y),
+                              C2 = byA_Point(x=self._points['Iback']._x+delta,y=self._points['Iback']._y-delta/equaLIa), 
                               P2 = self._points['Iback'])        
 
      def compute_front_neckline_bodice_adjustement_curve(self):
         # front
-        self._points['Cbafront'] = Point(x=0, y=0.75, name = "C'") + self._points['Cfront']
+        self._points['Cbafront'] = byA_Point(x=0, y=0.75, name = "C'") + self._points['Cfront']
         equaLIa,equaLIb = pattern.get_equation_line(pattern._points['Lfront'],pattern._points['Ifront'])
         angle = math.atan(equaLIa)
         # cos(angle) = dx/0.25cm
         # sin(angle) = dy/0.25cm
         dx = 0.25*math.cos(angle)
         dy = 0.25*math.sin(angle)
-        self._points['Ibafront'] = Point(x=-dx, y=-dy, name = "") + self._points['Ifront']
+        self._points['Ibafront'] = byA_Point(x=-dx, y=-dy, name = "") + self._points['Ifront']
         bh = pattern._points['Cbafront']._x-pattern._points['Ibafront']._x;
         delta = 0.1*bh
         self._front_neckline_bodice_adjustement_curve = My_CubicBezier(P1 = self._points['Cbafront'],
-                              C1 = Point(x=0.2*self._points['Cbafront']._x+0.8*self._points['Ibafront']._x,y=self._points['Cbafront']._y),
-                              C2 = Point(x=self._points['Ibafront']._x+delta,y=self._points['Ibafront']._y-delta/equaLIa), 
+                              C1 = byA_Point(x=0.2*self._points['Cbafront']._x+0.8*self._points['Ibafront']._x,y=self._points['Cbafront']._y),
+                              C2 = byA_Point(x=self._points['Ibafront']._x+delta,y=self._points['Ibafront']._y-delta/equaLIa), 
                               P2 = self._points['Ibafront'])        
         
      def compute_back_neckline_bodice_adjustement_curve(self):
         # back
-        self._points['Bbaback'] = Point(x=0, y=0.1, name = "Bb") + self._points['Bback']
+        self._points['Bbaback'] = byA_Point(x=0, y=0.1, name = "Bb") + self._points['Bback']
         equaLIa,equaLIb = pattern.get_equation_line(self._points['Lback'],self._points['Iback'])
         angle = math.atan(equaLIa)
         # cos(angle) = dx/0.25cm
         # sin(angle) = dy/0.25cm
         dx = 0.25*math.cos(angle)
         dy = 0.25*math.sin(angle)
-        self._points['Ibaback'] = Point(x=-dx, y=-dy, name = "Ib") + self._points['Iback']
+        self._points['Ibaback'] = byA_Point(x=-dx, y=-dy, name = "Ib") + self._points['Iback']
         bh = pattern._points['Bbaback']._x-pattern._points['Ibaback']._x;
         delta = 0.02*bh
         self._back_neckline_bodice_adjustement_curve = My_CubicBezier(P1 = self._points['Bbaback'],
-                              C1 = Point(x=0.2*self._points['Bbaback']._x+0.8*self._points['Ibaback']._x,y=self._points['Bbaback']._y),
-                              C2 = Point(x=self._points['Ibaback']._x+delta,y=self._points['Ibaback']._y-delta/equaLIa), 
+                              C1 = byA_Point(x=0.2*self._points['Bbaback']._x+0.8*self._points['Ibaback']._x,y=self._points['Bbaback']._y),
+                              C2 = byA_Point(x=self._points['Ibaback']._x+delta,y=self._points['Ibaback']._y-delta/equaLIa), 
                               P2 = self._points['Ibaback'])        
 
      def compute_back_armhole_base_curve(self):
@@ -467,10 +410,10 @@ class Pattern_Generator(FrozenClass):
 
      def compute_front_armhole_bodice_adjustement_curve(self):
         # front
-        self._points['Nbafront'] = Point(x=-0.75, y=0, name = "Nb") + self._points['Nfront']
+        self._points['Nbafront'] = byA_Point(x=-0.75, y=0, name = "Nb") + self._points['Nfront']
 
         # Underarm side seam adjustement
-        self._points['Ebafront'] = Point(x=-1.75, y=1.5, name = "Eb") + self._points['E']
+        self._points['Ebafront'] = byA_Point(x=-1.75, y=1.5, name = "Eb") + self._points['E']
 
         # armhole curve redesign
         equaLIa,equaLIb = pattern.get_equation_line(pattern._points['Lfront'],pattern._points['Ifront'])
@@ -481,10 +424,10 @@ class Pattern_Generator(FrozenClass):
 
      def compute_back_armhole_bodice_adjustement_curve(self):
         # back
-        self._points['Mbaback'] = Point(x=-0.75, y=0, name = "Mb") + self._points['Mback']
+        self._points['Mbaback'] = byA_Point(x=-0.75, y=0, name = "Mb") + self._points['Mback']
 
         # Underarm side seam adjustement
-        self._points['Ebaback'] = Point(x=-1.75, y=1.5, name = "Eb") + self._points['E']
+        self._points['Ebaback'] = byA_Point(x=-1.75, y=1.5, name = "Eb") + self._points['E']
 
         # armhole curve redesign
         equaLIa,equaLIb = pattern.get_equation_line(pattern._points['Lback'],pattern._points['Iback'])
@@ -493,22 +436,22 @@ class Pattern_Generator(FrozenClass):
         self._armhole_back_measurement = dist
 
      def compute_front_waist_base_curve(self):
-        P1 = Point(x=pattern._points['Dfront']._x+2, y=pattern._points['Dfront']._y)
-        P2 = Point(x=pattern._points['Afront']._x-5, y=pattern._points['Afront']._y)
+        P1 = byA_Point(x=pattern._points['Dfront']._x+2, y=pattern._points['Dfront']._y)
+        P2 = byA_Point(x=pattern._points['Afront']._x-5, y=pattern._points['Afront']._y)
         self._front_waist_base_curve = My_CubicBezier(P1 = pattern._points['Dfront'], C1 = P1, C2 = P2, P2 = pattern._points['Afront'])
         self._front_waist_base_curve_lenght = self.get_curve_distance(pattern._points['Dfront'], P1, P2, pattern._points['Afront'])
 
      def compute_front_waist_bodice_adjustement_curve(self):
         # Waist adjustement
-        self._points['Dbafront'] = Point(x=-1.5, y=0, name = "D2b") + self._points['Dfront']
-        P1 = Point(x=pattern._points['Dbafront']._x+2, y=pattern._points['Dbafront']._y)
-        P2 = Point(x=pattern._points['Afront']._x-5, y=pattern._points['Afront']._y)
+        self._points['Dbafront'] = byA_Point(x=-1.5, y=0, name = "D2b") + self._points['Dfront']
+        P1 = byA_Point(x=pattern._points['Dbafront']._x+2, y=pattern._points['Dbafront']._y)
+        P2 = byA_Point(x=pattern._points['Afront']._x-5, y=pattern._points['Afront']._y)
         self._front_waist_bodice_adjustement_curve = My_CubicBezier(P1 = pattern._points['Dbafront'], C1 = P1, C2 = P2, P2 = pattern._points['Afront'])
         self._front_waist_bodice_adjustement_curve_lenght = self.get_curve_distance(pattern._points['Dbafront'], P1, P2, pattern._points['Afront'])
 
      def compute_back_waist_bodice_adjustement_curve(self):
         # Waist adjustement
-        self._points['Dbaback'] = Point(x=0-1.5, y=0, name = "Db") + self._points['Dback']
+        self._points['Dbaback'] = byA_Point(x=0-1.5, y=0, name = "Db") + self._points['Dback']
 
      def compute_front_shoulderline_bodice_adjustement_line(self):
         # Shoulder line adjustement
@@ -516,7 +459,7 @@ class Pattern_Generator(FrozenClass):
         angle = math.atan(equaLIa)
         dx = 0.5*math.cos(angle)
         dy = 0.5*math.sin(angle)
-        self._points['Lbafront'] = Point(x=-dx, y=-dy, name = "") + self._points['Lfront']
+        self._points['Lbafront'] = byA_Point(x=-dx, y=-dy, name = "") + self._points['Lfront']
 
      def compute_back_shoulderline_bodice_adjustement_line(self):
         # Shoulder line adjustement
@@ -524,7 +467,7 @@ class Pattern_Generator(FrozenClass):
         angle = math.atan(equaLIa)
         dx = 0.5*math.cos(angle)
         dy = 0.5*math.sin(angle)
-        self._points['Lbaback'] = Point(x=-dx, y=-dy, name = "Lb") + self._points['Lback']
+        self._points['Lbaback'] = byA_Point(x=-dx, y=-dy, name = "Lb") + self._points['Lback']
 
      def draw_bodice_adjustement_line_and_curves_back(self):
         g = self._areas["BackAreaBodiceEnlargement"]
@@ -532,10 +475,10 @@ class Pattern_Generator(FrozenClass):
         pattern.compute_back_shoulderline_bodice_adjustement_line()
         pattern.compute_back_armhole_bodice_adjustement_curve()
         pattern.compute_back_waist_bodice_adjustement_curve()
-        line1 = My_Line(P1=self._points['A'], P2=self._points['Bbaback'])        
-        line2 = My_Line(P1=self._points['Ibaback'], P2=self._points['Lbaback'])  
-        line3 = My_Line(P1=self._points['Ebaback'], P2=self._points['Dbaback'])  
-        line4 = My_Line(P1=self._points['Dbaback'], P2=self._points['A'])  
+        line1 = byA_Line(P1=self._points['A'], P2=self._points['Bbaback'])        
+        line2 = byA_Line(P1=self._points['Ibaback'], P2=self._points['Lbaback'])  
+        line3 = byA_Line(P1=self._points['Ebaback'], P2=self._points['Dbaback'])  
+        line4 = byA_Line(P1=self._points['Dbaback'], P2=self._points['A'])  
         paths = My_Path(line1,self._back_neckline_bodice_adjustement_curve,line2, self._back_armhole_bodice_adjustement_curve,line3,line4, closed=True)
         path = self._svg_file.path(d=(paths.d()),
                                       id = g.get_id() + "Curve", 
@@ -555,10 +498,10 @@ class Pattern_Generator(FrozenClass):
         pattern.compute_front_shoulderline_bodice_adjustement_line()
         pattern.compute_front_armhole_bodice_adjustement_curve()
         pattern.compute_front_waist_bodice_adjustement_curve()
-        line1 = My_Line(P1=self._points['A'], P2=self._points['Cbafront'])        
-        line2 = My_Line(P1=self._points['Ibafront'], P2=self._points['Lbafront'])  
-        line3 = My_Line(P1=self._points['Ebafront'], P2=self._points['Dbafront'])  
-        line4 = My_Line(P1=self._points['Afront'], P2=self._points['A'])  
+        line1 = byA_Line(P1=self._points['A'], P2=self._points['Cbafront'])        
+        line2 = byA_Line(P1=self._points['Ibafront'], P2=self._points['Lbafront'])  
+        line3 = byA_Line(P1=self._points['Ebafront'], P2=self._points['Dbafront'])  
+        line4 = byA_Line(P1=self._points['Afront'], P2=self._points['A'])  
         paths = My_Path(line1,self._front_neckline_bodice_adjustement_curve,line2, self._front_armhole_bodice_adjustement_curve,line3, self._front_waist_bodice_adjustement_curve, line4, closed=True)
         path = self._svg_file.path(d=(paths.d()),
                                       id = g.get_id() + "Curve", 
@@ -580,9 +523,9 @@ class Pattern_Generator(FrozenClass):
         # sin(angle) = dy/2cm
         dx = 2*math.cos(angle)
         dy = 2*math.sin(angle)
-        #self._pointAAA = Point(x=self._pointL2._x-dx, y=self._pointL2._y-dy-0.5, name = "AAA")
-        #self._pointI2AA = Point(x=self._pointI2._x, y=self._pointI2._y-1.5, name = "I2AA")
-        #self._pointCAA = Point(x=self._points['C']_x, y=self._points['C']_y-1.5, name = "CAA")
+        #self._pointAAA = byA_Point(x=self._pointL2._x-dx, y=self._pointL2._y-dy-0.5, name = "AAA")
+        #self._pointI2AA = byA_Point(x=self._pointI2._x, y=self._pointI2._y-1.5, name = "I2AA")
+        #self._pointCAA = byA_Point(x=self._points['C']_x, y=self._points['C']_y-1.5, name = "CAA")
         #self.draw_line(group, self._pointAAA, self._pointI2AA, curStatureIdx, thickness)
         #pathStr = 'M ' + str(self._pointI2AA._x*CMPX) + ',' + str(self._pointI2AA._y*CMPX)
         #bh = pattern._pointB._x-pattern._pointH._x;
@@ -602,15 +545,15 @@ class Pattern_Generator(FrozenClass):
         angle = math.atan(equaLIa)
         dx = math.cos(angle)
         dy = math.sin(angle)
-        self._pointLCE = Point(x=self._pointL._x-2*dx, y=self._pointL._y-2*dy, name = "Lc")
-        self._pointICE = Point(x=self._pointI._x-dx, y=self._pointI._y-dy, name = "Ic")
-        self._pointBCE = Point(x=self._pointB._x, y=self._pointB._y+0.5, name = "Bc")
+        self._pointLCE = byA_Point(x=self._pointL._x-2*dx, y=self._pointL._y-2*dy, name = "Lc")
+        self._pointICE = byA_Point(x=self._pointI._x-dx, y=self._pointI._y-dy, name = "Ic")
+        self._pointBCE = byA_Point(x=self._pointB._x, y=self._pointB._y+0.5, name = "Bc")
         self.draw_line(group, self._pointLCE, self._pointICE, curStatureIdx, thickness)
         pathStr = 'M ' + str(self._pointICE._x*CMPX) + ',' + str(self._pointICE._y*CMPX)
         bh = pattern._pointB._x-pattern._pointH._x
         delta = 0.02*bh
-        P0 = Point(x=self._pointICE._x+delta, y=self._pointICE._y-delta/equaLIa)
-        P1 = Point(x=0.1*self._pointBCE._x+0.9*self._pointICE._x, y=self._pointBCE._y)
+        P0 = byA_Point(x=self._pointICE._x+delta, y=self._pointICE._y-delta/equaLIa)
+        P1 = byA_Point(x=0.1*self._pointBCE._x+0.9*self._pointICE._x, y=self._pointBCE._y)
         P2 = self._pointBCE
         self._backNecklinePath = np.array((self._pointICE, P0, P1, P2))
         pathStr += ' C ' + str(P0._x*CMPX) + ',' + str(P0._y*CMPX)
@@ -623,10 +566,10 @@ class Pattern_Generator(FrozenClass):
                                       fill = 'none')
         path['class'] = str(self._strokes[curStatureIdx]) + " " + str(thickness)
         group.add(path)
-        self._pointMCE = Point(x=self._pointM._x-2.5, y=self._pointM._y, name = "ME")
-        self._pointECE = Point(x=self._pointE._x-4.75, y=self._pointE._y+4.5, name = "EE")
-        self._pointACE = Point(x=self._pointA._x, y=self._pointA._y+2, name = "AE")
-        self._pointD2CE = Point(x=self._pointD2._x-4.75, y=self._pointD2._y+2, name = "D2E")
+        self._pointMCE = byA_Point(x=self._pointM._x-2.5, y=self._pointM._y, name = "ME")
+        self._pointECE = byA_Point(x=self._pointE._x-4.75, y=self._pointE._y+4.5, name = "EE")
+        self._pointACE = byA_Point(x=self._pointA._x, y=self._pointA._y+2, name = "AE")
+        self._pointD2CE = byA_Point(x=self._pointD2._x-4.75, y=self._pointD2._y+2, name = "D2E")
         self.draw_line(group, self._pointECE, self._pointD2CE, curStatureIdx, 'base')
         self.draw_line(group, self._pointD2CE, self._pointACE, curStatureIdx, thickness)
         self.draw_line(group, self._pointBCE, self._pointACE, curStatureIdx, thickness)
@@ -636,20 +579,20 @@ class Pattern_Generator(FrozenClass):
         path['class'] = str(self._strokes[curStatureIdx]) + " " + str(thickness)
             
      def draw_coat_enlargement_front(self, group, curStatureIdx, thickness):
-        self._pointCCE = Point(x=self._pointCAA._x, y=self._pointCAA._y+2, name = "Cc")
+        self._pointCCE = byA_Point(x=self._pointCAA._x, y=self._pointCAA._y+2, name = "Cc")
         longueurepauldos = self.get_distance(self._pointICE, self._pointLCE)
         equaLIa,equaLIb = pattern.get_equation_line(pattern._pointAAA,pattern._pointI2AA)
         angle = math.atan(equaLIa)
         dx = math.cos(angle)
         dy = math.sin(angle)
-        self._pointI2CE = Point(x=self._pointAAA._x+dx*longueurepauldos, y=self._pointAAA._y+dy*longueurepauldos, name = "I2c")
+        self._pointI2CE = byA_Point(x=self._pointAAA._x+dx*longueurepauldos, y=self._pointAAA._y+dy*longueurepauldos, name = "I2c")
         self.draw_line(group, self._pointI2CE, self._pointAAA, curStatureIdx, thickness)
         pathStr = 'M ' + str(self._pointI2CE._x*CMPX) + ',' + str(self._pointI2CE._y*CMPX)
         bh = pattern._pointB._x-pattern._pointH._x;
         delta = 0.1*bh
-        P0 = Point(x=self._pointI2CE._x+delta, y=self._pointI2CE._y-delta/equaLIa)
-        P1 = Point(x=0.2*self._pointCCE._x+0.8*self._pointJ._x, y=self._pointCCE._y)
-        P2 = Point(x=self._pointCCE._x, y=self._pointCCE._y)
+        P0 = byA_Point(x=self._pointI2CE._x+delta, y=self._pointI2CE._y-delta/equaLIa)
+        P1 = byA_Point(x=0.2*self._pointCCE._x+0.8*self._pointJ._x, y=self._pointCCE._y)
+        P2 = byA_Point(x=self._pointCCE._x, y=self._pointCCE._y)
         self._frontNecklinePath = np.array((self._pointI2CE, P0, P1, P2))
         pathStr += ' C ' + str(P0._x*CMPX) + ',' + str(P0._y*CMPX)
         pathStr += ' ' + str(P1._x*CMPX) + ',' + str(P1._y*CMPX)
@@ -661,10 +604,10 @@ class Pattern_Generator(FrozenClass):
                                       fill = 'none')
         path['class'] = str(self._strokes[curStatureIdx]) + " " + str(thickness)
         group.add(path)
-        self._pointNCE = Point(x=self._pointN._x-2.5, y=self._pointN._y, name = "NE")
-        self._pointECE = Point(x=self._pointE._x-4.75, y=self._pointE._y+4.5, name = "EE")
-        self._pointACE = Point(x=self._pointA._x, y=self._pointA._y+2, name = "AE")
-        self._pointD2CE = Point(x=self._pointD2._x-4.75, y=self._pointD2._y+2, name = "D2E")
+        self._pointNCE = byA_Point(x=self._pointN._x-2.5, y=self._pointN._y, name = "NE")
+        self._pointECE = byA_Point(x=self._pointE._x-4.75, y=self._pointE._y+4.5, name = "EE")
+        self._pointACE = byA_Point(x=self._pointA._x, y=self._pointA._y+2, name = "AE")
+        self._pointD2CE = byA_Point(x=self._pointD2._x-4.75, y=self._pointD2._y+2, name = "D2E")
         self.draw_line(group, self._pointECE, self._pointD2CE, curStatureIdx, 'base')
         self.draw_line(group, self._pointD2CE, self._pointACE, curStatureIdx, thickness)
         #self.draw_line(group, self._pointBCE, self._pointACE, curStatureIdx, thickness)
@@ -674,14 +617,14 @@ class Pattern_Generator(FrozenClass):
         path['class'] = str(self._strokes[curStatureIdx]) + " " + str(thickness)
 
      def draw_waist_line(self, group, curStatureIdx, thickness):
-        self._pointW1 = Point(x=self._pointACE._x, y=self._pointACE._y+self._waist_to_hips[curStatureIdx], name = "W1")
-        self._pointW2 = Point(x=self._pointACE._x-0.25*self._hips_measurement[curStatureIdx]-5, y=self._pointACE._y+self._waist_to_hips[curStatureIdx], name = "W2")
+        self._pointW1 = byA_Point(x=self._pointACE._x, y=self._pointACE._y+self._waist_to_hips[curStatureIdx], name = "W1")
+        self._pointW2 = byA_Point(x=self._pointACE._x-0.25*self._hips_measurement[curStatureIdx]-5, y=self._pointACE._y+self._waist_to_hips[curStatureIdx], name = "W2")
         self.draw_line(group, self._pointW1, self._pointW2, curStatureIdx, thickness)
         self.draw_line(group, self._pointW1, self._pointACE, curStatureIdx, thickness)
         self.draw_line(group, self._pointW2, self._pointD2CE, curStatureIdx, 'base')
         delta = self.get_distance(self._pointW2, self._pointD2CE)
-        P1 = Point(x=self._pointD2CE._x, y=self._pointD2CE._y-0.2*delta)
-        P2 = Point(x=self._pointD2CE._x, y=self._pointD2CE._y+0.2*delta)
+        P1 = byA_Point(x=self._pointD2CE._x, y=self._pointD2CE._y-0.2*delta)
+        P2 = byA_Point(x=self._pointD2CE._x, y=self._pointD2CE._y+0.2*delta)
         pathStr = 'M ' + str(self._pointECE._x*CMPX) + ',' + str(self._pointECE._y*CMPX)
         pathStr += ' C ' + str(P1._x*CMPX) + ',' + str(P1._y*CMPX)
         pathStr += ' ' +   str(P1._x*CMPX) + ',' + str(P1._y*CMPX)  
@@ -706,7 +649,7 @@ class Pattern_Generator(FrozenClass):
 
      def draw_croisure(self, group, curStatureIdx, thickness):
         delta = 0.02*self._hips_measurement[curStatureIdx]
-        self._pointW1croisure = Point(x=self._pointW1._x+delta, y=self._pointW1._y, name = "Wc")
+        self._pointW1croisure = byA_Point(x=self._pointW1._x+delta, y=self._pointW1._y, name = "Wc")
         # P(t)= P0(1-t)^3+3P1t(1-t)^2+3P2t^2(1-t)+P3t^3 en x = self._pointW1croisure._x
         Ptx = float(self._pointW1._x-delta)
         deg3 = self._frontNecklinePath[3]._x - self._frontNecklinePath[0]._x + 3 * (self._frontNecklinePath[1]._x - self._frontNecklinePath[2]._x)        
@@ -717,7 +660,7 @@ class Pattern_Generator(FrozenClass):
         tReal = [x for x in cardan if x.imag==0]
         tReal = tReal[0].real
         Pty = self._frontNecklinePath[0]._y*(1-tReal)**3 + 3*self._frontNecklinePath[1]._y*tReal*(1-tReal)**2 + 3*self._frontNecklinePath[2]._y*tReal**2*(1-tReal) + self._frontNecklinePath[3]._y*tReal**3
-        self._pointCcroisure = Point(x=self._pointCCE._x+delta, y=Pty, name = "Cc")
+        self._pointCcroisure = byA_Point(x=self._pointCCE._x+delta, y=Pty, name = "Cc")
         
         (P0,P11t,P21t,P31t),(P31t,P22t,P13t,P3) = self.get_sub_curves(self._frontNecklinePath[0], self._frontNecklinePath[1], self._frontNecklinePath[2], self._frontNecklinePath[3], tReal)
         
@@ -736,29 +679,29 @@ class Pattern_Generator(FrozenClass):
         group.add(path)
         
         # button
-        self._pointButton = Point(x=self._pointW1._x,y=self._pointECE._y, name="Button")
+        self._pointButton = byA_Point(x=self._pointW1._x,y=self._pointECE._y, name="Button")
 
      def draw_tailored_collar(self, collarBandWidth, upperCollarWidth, group, curStatureIdx, thickness):
-        self._pointButtonCroisure = Point(x = self._pointW1._x, y = self._pointButton._y - 1, name="ButtonC")
+        self._pointButtonCroisure = byA_Point(x = self._pointW1._x, y = self._pointButton._y - 1, name="ButtonC")
         self.draw_point(group, self._pointButtonCroisure)
-        self._pointCollarBandWidthCenterBack = Point(x = self._pointBCE._x, y = self._pointBCE._y - collarBandWidth, name="Bcbw")
-        self._pointCollarBandWidthCenterUpperBack = Point(x = self._pointCollarBandWidthCenterBack._x, y = self._pointCollarBandWidthCenterBack._y + upperCollarWidth, name="Bcbw")
-        self._pointCollarKBack = Point(x = self._pointCollarBandWidthCenterBack._x, y = self._pointCollarBandWidthCenterBack._y - collarBandWidth, name="K")
+        self._pointCollarBandWidthCenterBack = byA_Point(x = self._pointBCE._x, y = self._pointBCE._y - collarBandWidth, name="Bcbw")
+        self._pointCollarBandWidthCenterUpperBack = byA_Point(x = self._pointCollarBandWidthCenterBack._x, y = self._pointCollarBandWidthCenterBack._y + upperCollarWidth, name="Bcbw")
+        self._pointCollarKBack = byA_Point(x = self._pointCollarBandWidthCenterBack._x, y = self._pointCollarBandWidthCenterBack._y - collarBandWidth, name="K")
         if group is self._areas["backArea"]:
             self.draw_line(group, self._pointCollarBandWidthCenterBack, self._pointBCE, curStatureIdx, 'base')
         equaShoulderFrontA,equaShoulderFrontB = pattern.get_equation_line(pattern._pointLCE,pattern._pointI2CE)
         angleFront = math.atan(equaShoulderFrontA)
         dx,dy = collarBandWidth*math.cos(-angleFront),collarBandWidth*math.sin(-angleFront)
-        self._pointFrontCollarBandWidthShoulderLine = Point(x = self._pointI2CE._x+dx, y = self._pointI2CE._y+dy, name="Icbwf")
-        self._pointFrontCollarK2Back = Point(x = self._pointI2CE._x+2*dx, y = self._pointI2CE._y+2*dy, name="K2f")
+        self._pointFrontCollarBandWidthShoulderLine = byA_Point(x = self._pointI2CE._x+dx, y = self._pointI2CE._y+dy, name="Icbwf")
+        self._pointFrontCollarK2Back = byA_Point(x = self._pointI2CE._x+2*dx, y = self._pointI2CE._y+2*dy, name="K2f")
         if group is self._areas["frontArea"]:
             self.draw_line(group, self._pointFrontCollarBandWidthShoulderLine, self._pointI2CE, curStatureIdx, 'base')
             self.draw_line(group, self._pointFrontCollarBandWidthShoulderLine, self._pointButtonCroisure, curStatureIdx, thickness)
         equaShoulderBackA,equaShoulderBackB = self.get_equation_line(self._pointLCE, self._pointICE)
         angleBack = math.atan(equaShoulderBackA)
         angle = -2*angleFront-angleBack
-        self._pointBackCollarBandWidthShoulderLine = Point(x = self._pointICE._x+collarBandWidth*math.cos(angle), y = self._pointICE._y-collarBandWidth*math.sin(angle), name="Icbwb")
-        self._pointBackCollarK2 = Point(x = self._pointICE._x+2*collarBandWidth*math.cos(angle), y = self._pointICE._y-2*collarBandWidth*math.sin(angle), name="K2b")
+        self._pointBackCollarBandWidthShoulderLine = byA_Point(x = self._pointICE._x+collarBandWidth*math.cos(angle), y = self._pointICE._y-collarBandWidth*math.sin(angle), name="Icbwb")
+        self._pointBackCollarK2 = byA_Point(x = self._pointICE._x+2*collarBandWidth*math.cos(angle), y = self._pointICE._y-2*collarBandWidth*math.sin(angle), name="K2b")
         if group is self._areas["backArea"]:
             # P(t)= P0(1-t)^3+3P1t(1-t)^2+3P2t^2(1-t)+P3t^3 en x = Bc-Icbwb+Ic
             Ptx = self._pointBCE._x-self._pointBackCollarBandWidthShoulderLine._x+self._pointICE._x
@@ -812,7 +755,7 @@ class Pattern_Generator(FrozenClass):
             vectELyFront = -0.5 * (pattern._points["Efront"]._y - pattern._points["Lfront"]._y)            
             vectELxBack = -0.5 * (pattern._points["Eback"]._x - pattern._points["Lback"]._x)             
             vectELyBack = -0.5 * (pattern._points["Eback"]._y - pattern._points["Lback"]._y)            
-            self._points['CenterShoulderTips'] = pattern._points["Eback"] + Point(x=vectELxBack, y=vectELyBack) + Point(x=-vectELxFront, y=vectELyFront)
+            self._points['CenterShoulderTips'] = pattern._points["Eback"] + byA_Point(x=vectELxBack, y=vectELyBack) + byA_Point(x=-vectELxFront, y=vectELyFront)
             self._armehole_depth = pattern.get_distance(self._points['CenterShoulderTips'], self._points["Efront"])
 
      def draw_sleeve(self, bracelet = 0):
@@ -824,25 +767,25 @@ class Pattern_Generator(FrozenClass):
 
         armhole_measurement = self._armhole_back_measurement + self._armhole_front_measurement 
 
-        self._points['SA'] = Point(x=0, y=0, name="SA")
-        self._points['SB'] = Point(x=0, y=4.0/5.0*self._armehole_depth, name="SB") + self._points["SA"]
+        self._points['SA'] = byA_Point(x=0, y=0, name="SA")
+        self._points['SB'] = byA_Point(x=0, y=4.0/5.0*self._armehole_depth, name="SB") + self._points["SA"]
         ab = self.get_distance(self._points["SA"], self._points["SB"])
-        self._points['SC'] = Point(x=-2.0/5.0*armhole_measurement, y=0, name="SC") + self._points["SB"]
-        self._points['SD'] = Point(x=2.0/5.0*armhole_measurement, y=0, name="SD") + self._points["SB"]
+        self._points['SC'] = byA_Point(x=-2.0/5.0*armhole_measurement, y=0, name="SC") + self._points["SB"]
+        self._points['SD'] = byA_Point(x=2.0/5.0*armhole_measurement, y=0, name="SD") + self._points["SB"]
         self.draw_line(self._areas["sleeveArea"], self._points['SC'], self._points['SD'], curStatureIdx, 'base')
-        self._points['SE'] = Point(x=-1.0/5.0*armhole_measurement, y=0, name="SE") + self._points["SB"]
-        self._points['SF'] = Point(x=1.0/5.0*armhole_measurement, y=0, name="SF") + self._points["SB"]
-        self._points['SG'] = Point(x=0, y=self._arm_lenght[curStatureIdx]-bracelet, name="SG") + self._points["SA"]
+        self._points['SE'] = byA_Point(x=-1.0/5.0*armhole_measurement, y=0, name="SE") + self._points["SB"]
+        self._points['SF'] = byA_Point(x=1.0/5.0*armhole_measurement, y=0, name="SF") + self._points["SB"]
+        self._points['SG'] = byA_Point(x=0, y=self._arm_lenght[curStatureIdx]-bracelet, name="SG") + self._points["SA"]
         self.draw_line(self._areas["sleeveArea"], self._points['SA'], self._points['SG'], curStatureIdx, 'base')
-        self._points['SC2'] = Point(x=self._points["SC"]._x, y=self._points["SG"]._y, name="SC'")
-        self._points['SD2'] = Point(x=self._points["SD"]._x, y=self._points["SG"]._y, name="SD'")
+        self._points['SC2'] = byA_Point(x=self._points["SC"]._x, y=self._points["SG"]._y, name="SC'")
+        self._points['SD2'] = byA_Point(x=self._points["SD"]._x, y=self._points["SG"]._y, name="SD'")
         self.draw_line(self._areas["sleeveArea"], self._points['SC'], self._points['SC2'], curStatureIdx, 'base')
         self.draw_line(self._areas["sleeveArea"], self._points['SD'], self._points['SD2'], curStatureIdx, 'base')
         self.draw_line(self._areas["sleeveArea"], self._points['SC2'], self._points['SD2'], curStatureIdx, 'base')
-        self._points['SE2'] = Point(x=0, y=-2.0/3.0*ab, name="SE'") + self._points["SE"]
-        self._points['SF2'] = Point(x=0, y=-1.0/2.0*ab, name="SF'") + self._points["SF"]
-        self._points['SF2down'] = Point(x=self._points["SF2"]._x, y=self._points["SD2"]._y, name="SF2d") 
-        self._points['SE2down'] = Point(x=self._points["SE2"]._x,y=self._points["SD2"]._y, name='SE2d')
+        self._points['SE2'] = byA_Point(x=0, y=-2.0/3.0*ab, name="SE'") + self._points["SE"]
+        self._points['SF2'] = byA_Point(x=0, y=-1.0/2.0*ab, name="SF'") + self._points["SF"]
+        self._points['SF2down'] = byA_Point(x=self._points["SF2"]._x, y=self._points["SD2"]._y, name="SF2d") 
+        self._points['SE2down'] = byA_Point(x=self._points["SE2"]._x,y=self._points["SD2"]._y, name='SE2d')
         #pattern.draw_line(pattern._areas["sleeveArea"], pattern._points['SE'], pattern._points['SE2'], curStatureIdx, 'base')
         #pattern.draw_line(pattern._areas["sleeveArea"], pattern._points['SF'], pattern._points['SF2'], curStatureIdx, 'base')
         
@@ -850,36 +793,36 @@ class Pattern_Generator(FrozenClass):
         angle = math.atan(-1.0/equaSCE2a)
         dx = 0.75*math.cos(angle)
         dy = 0.75*math.sin(angle)
-        self._points['SCE2Creux'] = Point(x=1.0/3.0*(self._points["SE2"]._x-self._points["SC"]._x), y=1.0/3.0*(self._points["SE2"]._y-self._points["SC"]._y), name="SCE2Creux") + Point(x=dx,y=dy) + self._points["SC"]
+        self._points['SCE2Creux'] = byA_Point(x=1.0/3.0*(self._points["SE2"]._x-self._points["SC"]._x), y=1.0/3.0*(self._points["SE2"]._y-self._points["SC"]._y), name="SCE2Creux") + byA_Point(x=dx,y=dy) + self._points["SC"]
 
         equaSF2Aa,equaSF2Ab = self.get_equation_line(self._points["SA"],self._points["SF2"])
         angle = math.atan(-1.0/equaSF2Aa)
         dx = 1.0*math.cos(angle)
         dy = 1.0*math.sin(angle)
-        self._points['SAF2Creux'] = Point(x=1.0/2.0*(self._points["SF2"]._x-self._points["SA"]._x), y=1.0/2.0*(self._points["SF2"]._y-self._points["SA"]._y), name="SAF2Creux") + Point(x=dx,y=dy) + self._points["SA"]
+        self._points['SAF2Creux'] = byA_Point(x=1.0/2.0*(self._points["SF2"]._x-self._points["SA"]._x), y=1.0/2.0*(self._points["SF2"]._y-self._points["SA"]._y), name="SAF2Creux") + byA_Point(x=dx,y=dy) + self._points["SA"]
 
         equaSDF2a,equaSDF2b = self.get_equation_line(self._points["SF2"],self._points["SD"])
         angle = math.atan(-1.0/equaSDF2a)
         dx = -1.0*math.cos(angle)
         dy = -1.0*math.sin(angle)
-        self._points['SF2DCreux'] = Point(x=1.0/2.0*(self._points["SD"]._x-self._points["SF2"]._x), y=1.0/2.0*(self._points["SD"]._y-self._points["SF2"]._y), name="SF2DCreux") + Point(x=dx,y=dy) + self._points["SF2"]
+        self._points['SF2DCreux'] = byA_Point(x=1.0/2.0*(self._points["SD"]._x-self._points["SF2"]._x), y=1.0/2.0*(self._points["SD"]._y-self._points["SF2"]._y), name="SF2DCreux") + byA_Point(x=dx,y=dy) + self._points["SF2"]
 
-        P1 = Point(x=self._points["SAF2Creux"]._x + 1.0*math.cos(math.atan(equaSF2Aa)), y=self._points["SAF2Creux"]._y + 1.0*math.sin(math.atan(equaSF2Aa)))
-        P2 = Point(x=self._points["SF2DCreux"]._x - 1.0*math.cos(math.atan(equaSF2Aa)), y=self._points["SF2DCreux"]._y - 1.0*math.sin(math.atan(equaSF2Aa)))
+        P1 = byA_Point(x=self._points["SAF2Creux"]._x + 1.0*math.cos(math.atan(equaSF2Aa)), y=self._points["SAF2Creux"]._y + 1.0*math.sin(math.atan(equaSF2Aa)))
+        P2 = byA_Point(x=self._points["SF2DCreux"]._x - 1.0*math.cos(math.atan(equaSF2Aa)), y=self._points["SF2DCreux"]._y - 1.0*math.sin(math.atan(equaSF2Aa)))
         equaSCreuxCreuxa,equaSCreuxCreuxb = self.get_equation_line(P1,P2)
 
         bezier1 = My_CubicBezier(P1 = self._points['SC'],
-                              C1 = Point(x=self._points["SC"]._x+1.0,y=self._points["SC"]._y), 
-                              C2 = Point(x=self._points["SCE2Creux"]._x - 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SCE2Creux"]._y - 1.0*math.sin(math.atan(equaSCE2a))),
+                              C1 = byA_Point(x=self._points["SC"]._x+1.0,y=self._points["SC"]._y), 
+                              C2 = byA_Point(x=self._points["SCE2Creux"]._x - 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SCE2Creux"]._y - 1.0*math.sin(math.atan(equaSCE2a))),
                               P2 = self._points['SCE2Creux'])   
         bezier2 = My_CubicBezier(P1 = self._points['SCE2Creux'],
-                              C1 = Point(x=self._points["SCE2Creux"]._x + 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SCE2Creux"]._y + 1.0*math.sin(math.atan(equaSCE2a))), 
-                              C2 = Point(x=self._points["SE2"]._x - 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SE2"]._y - 1.0*math.sin(math.atan(equaSCE2a))),
+                              C1 = byA_Point(x=self._points["SCE2Creux"]._x + 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SCE2Creux"]._y + 1.0*math.sin(math.atan(equaSCE2a))), 
+                              C2 = byA_Point(x=self._points["SE2"]._x - 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SE2"]._y - 1.0*math.sin(math.atan(equaSCE2a))),
                               P2 = self._points['SE2'])
         curPath = My_Path(bezier1, bezier2)
-        curPath.append(My_Line(P1=self._points["SE2"], P2=self._points['SE2down']))
-        curPath.append(My_Line(P1=self._points['SE2down'], P2=self._points["SC2"]))
-        curPath.append(My_Line(P1=self._points["SC2"], P2=self._points["SC"]))
+        curPath.append(byA_Line(P1=self._points["SE2"], P2=self._points['SE2down']))
+        curPath.append(byA_Line(P1=self._points['SE2down'], P2=self._points["SC2"]))
+        curPath.append(byA_Line(P1=self._points["SC2"], P2=self._points["SC"]))
         path = self._svg_file.path(d=(curPath.d()),
                                   id = "curve"+str(curStatureIdx), 
                                   stroke_linejoin = 'round',
@@ -893,22 +836,22 @@ class Pattern_Generator(FrozenClass):
         
         dx = (self._points["SA"]._x-((self._points["SA"]._y-equaSCE2b)/equaSCE2a))
         frontUpCurve1 = My_CubicBezier(P1 = self._points['SE2'],
-                              C1 = Point(x=self._points["SE2"]._x + 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SE2"]._y + 1.0*math.sin(math.atan(equaSCE2a))), 
-                              C2 = Point(x=self._points["SA"]._x-dx,y=self._points["SA"]._y),
+                              C1 = byA_Point(x=self._points["SE2"]._x + 1.0*math.cos(math.atan(equaSCE2a)),y=self._points["SE2"]._y + 1.0*math.sin(math.atan(equaSCE2a))), 
+                              C2 = byA_Point(x=self._points["SA"]._x-dx,y=self._points["SA"]._y),
                               P2 = self._points['SA'])        
         dx = 0.5*(self._points["SAF2Creux"]._x-self._points["SA"]._x)
         frontUpCurve2 = My_CubicBezier(P1 = self._points['SA'],
-                              C1 = Point(x=self._points["SA"]._x+dx,y=self._points["SA"]._y), 
-                              C2 = Point(x=self._points["SAF2Creux"]._x - 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SAF2Creux"]._y - 1.0*math.sin(math.atan(equaSF2Aa))),
+                              C1 = byA_Point(x=self._points["SA"]._x+dx,y=self._points["SA"]._y), 
+                              C2 = byA_Point(x=self._points["SAF2Creux"]._x - 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SAF2Creux"]._y - 1.0*math.sin(math.atan(equaSF2Aa))),
                               P2 = self._points['SAF2Creux'])        
         frontUpCurve3 = My_CubicBezier(P1 = self._points['SAF2Creux'],
-                              C1 = Point(x=self._points["SAF2Creux"]._x + 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SAF2Creux"]._y + 1.0*math.sin(math.atan(equaSF2Aa))), 
-                              C2 = Point(x=self._points["SF2"]._x - 1.0*math.cos(math.atan(equaSCreuxCreuxa)),y=self._points["SF2"]._y - 1.0*math.sin(math.atan(equaSCreuxCreuxa))),
+                              C1 = byA_Point(x=self._points["SAF2Creux"]._x + 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SAF2Creux"]._y + 1.0*math.sin(math.atan(equaSF2Aa))), 
+                              C2 = byA_Point(x=self._points["SF2"]._x - 1.0*math.cos(math.atan(equaSCreuxCreuxa)),y=self._points["SF2"]._y - 1.0*math.sin(math.atan(equaSCreuxCreuxa))),
                               P2 = self._points['SF2'])        
         frontUpCurve = My_Path(frontUpCurve1, frontUpCurve2, frontUpCurve3)
-        frontUpCurve.append(My_Line(P1=self._points["SF2"], P2=self._points["SF2down"]))
-        frontUpCurve.append(My_Line(P1=self._points["SF2down"], P2=self._points['SE2down']))
-        frontUpCurve.append(My_Line(P1=self._points['SE2down'], P2=self._points["SE2"]))
+        frontUpCurve.append(byA_Line(P1=self._points["SF2"], P2=self._points["SF2down"]))
+        frontUpCurve.append(byA_Line(P1=self._points["SF2down"], P2=self._points['SE2down']))
+        frontUpCurve.append(byA_Line(P1=self._points['SE2down'], P2=self._points["SE2"]))
         path = self._svg_file.path(d=(frontUpCurve.d()),
                                       id = "curve"+str(curStatureIdx), 
                                       stroke_linejoin = 'round',
@@ -917,17 +860,17 @@ class Pattern_Generator(FrozenClass):
         subsSleeve["CenterSleeve"].add(path)
 
         bezier1 = My_CubicBezier(P1 = self._points['SF2'],
-                              C1 = Point(x=self._points["SF2"]._x + 1.0*math.cos(math.atan(equaSCreuxCreuxa)),y=self._points["SF2"]._y + 1.0*math.sin(math.atan(equaSCreuxCreuxa))), 
-                              C2 = Point(x=self._points["SF2DCreux"]._x - 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SF2DCreux"]._y - 1.0*math.sin(math.atan(equaSF2Aa))),
+                              C1 = byA_Point(x=self._points["SF2"]._x + 1.0*math.cos(math.atan(equaSCreuxCreuxa)),y=self._points["SF2"]._y + 1.0*math.sin(math.atan(equaSCreuxCreuxa))), 
+                              C2 = byA_Point(x=self._points["SF2DCreux"]._x - 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SF2DCreux"]._y - 1.0*math.sin(math.atan(equaSF2Aa))),
                               P2 = self._points['SF2DCreux'])        
         bezier2 = My_CubicBezier(P1 = self._points['SF2DCreux'],
-                              C1 = Point(x=self._points["SF2DCreux"]._x + 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SF2DCreux"]._y + 1.0*math.sin(math.atan(equaSF2Aa))), 
-                              C2 = self._points["SD"] + Point(x=-dx,y=0),
+                              C1 = byA_Point(x=self._points["SF2DCreux"]._x + 1.0*math.cos(math.atan(equaSF2Aa)),y=self._points["SF2DCreux"]._y + 1.0*math.sin(math.atan(equaSF2Aa))), 
+                              C2 = self._points["SD"] + byA_Point(x=-dx,y=0),
                               P2 = self._points['SD'])       
         curPath = My_Path(bezier1, bezier2)
-        curPath.append(My_Line(P1=self._points["SD"], P2=self._points['SD2']))
-        curPath.append(My_Line(P1=self._points['SD2'], P2=Point(x=self._points["SF2"]._x,y=self._points["SD2"]._y)))
-        curPath.append(My_Line(P1=Point(x=self._points["SF2"]._x,y=self._points["SD2"]._y), P2=self._points["SF2"]))
+        curPath.append(byA_Line(P1=self._points["SD"], P2=self._points['SD2']))
+        curPath.append(byA_Line(P1=self._points['SD2'], P2=byA_Point(x=self._points["SF2"]._x,y=self._points["SD2"]._y)))
+        curPath.append(byA_Line(P1=byA_Point(x=self._points["SF2"]._x,y=self._points["SD2"]._y), P2=self._points["SF2"]))
         path = self._svg_file.path(d=(curPath.d()),
                                    id = "curve"+str(curStatureIdx), 
                                    stroke_linejoin = 'round',
@@ -939,10 +882,10 @@ class Pattern_Generator(FrozenClass):
         self._points['SD2rot'].rotate(-3, self._points["SF2"])
         
         downPath = My_Path()
-        downLine = My_Line(P1=self._points["SC2rot"], P2=self._points['SD2rot'])
+        downLine = byA_Line(P1=self._points["SC2rot"], P2=self._points['SD2rot'])
         maxt=6
         for t in range(1,maxt+1):
-            downPath.append(My_Line(P1=Point(c=downLine._line.point((t-1)/float(maxt))), P2=Point(c=downLine._line.point(t/float(maxt)))))
+            downPath.append(byA_Line(P1=byA_Point(c=downLine._svgline.point((t-1)/float(maxt))), P2=byA_Point(c=downLine._svgline.point(t/float(maxt)))))
         path = self._svg_file.path(d=downPath.d(),
                                    id = "curve"+str(curStatureIdx), 
                                    stroke_linejoin = 'round',
@@ -950,17 +893,17 @@ class Pattern_Generator(FrozenClass):
         path['class'] = str(self._strokes[curStatureIdx]) + " " + str('sleeve')
         subsSleeve["CenterSleeve"].add(path)
 
-        dp = Point(x=self._points["SF2"]._x,y=self._points["SD2"]._y) - self._points['SA']
-        dirpm = Point(x=0.5*dp._x,y=-0.5*dp._y)
-        dirmm = Point(x=-0.5*dp._x,y=-0.5*dp._y)
-        dirpp = Point(x=0.5*dp._x,y=0.5*dp._y)
-        dirmp = Point(x=-0.5*dp._x,y=0.5*dp._y)
+        dp = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2"]._y) - self._points['SA']
+        dirpm = byA_Point(x=0.5*dp._x,y=-0.5*dp._y)
+        dirmm = byA_Point(x=-0.5*dp._x,y=-0.5*dp._y)
+        dirpp = byA_Point(x=0.5*dp._x,y=0.5*dp._y)
+        dirmp = byA_Point(x=-0.5*dp._x,y=0.5*dp._y)
         bezier1 = My_CubicBezier(P1 = self._points['SA'],
                               C1 = self._points['SA'] + dirpp,
-                              C2 = Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) + dirpm,
-                              P2 = Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y))   
-        bezier2 = My_CubicBezier(P1 = Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y),
-                              C1 = Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) + dirmm,
+                              C2 = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) + dirpm,
+                              P2 = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y))   
+        bezier2 = My_CubicBezier(P1 = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y),
+                              C1 = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) + dirmm,
                               C2 = self._points['SA'] + dirmp,
                               P2 = self._points['SA'])   
         #path = self._svg_file.path(d=(My_Path(bezier1._cubicbezier, bezier1._cubicbezier.rotated(180, self._points['SA'].toRI()).translated(dp.toRI())).d()),
@@ -972,10 +915,10 @@ class Pattern_Generator(FrozenClass):
         subsSleeve["CenterSleeve"].add(path)
         
         
-        PSAtleft = self._points['SA'] - Point(x=2,y=0);
-        PSAtright = self._points['SA'] + Point(x=2,y=0);
-        PSBtleft = Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) - Point(x=2,y=0);
-        PSBtright = Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) + Point(x=2,y=0);        
+        PSAtleft = self._points['SA'] - byA_Point(x=2,y=0);
+        PSAtright = self._points['SA'] + byA_Point(x=2,y=0);
+        PSBtleft = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) - byA_Point(x=2,y=0);
+        PSBtright = byA_Point(x=self._points["SF2"]._x,y=self._points["SD2rot"]._y) + byA_Point(x=2,y=0);        
         bezier3 = My_CubicBezier(P1 = PSAtleft,
                               C1 = PSAtleft + dirmp,
                               C2 = PSBtleft + dirmm,
@@ -991,7 +934,7 @@ class Pattern_Generator(FrozenClass):
         (sub1bezier4,sub2bezier4) = bezier4.split(T1)
         (sub1frontUpCurve2,sub2frontUpCurve2) = frontUpCurve2.split(T2)
         
-        line2 = My_Line(P1 = PSBtleft, P2 = PSBtright)
+        line2 = byA_Line(P1 = PSBtleft, P2 = PSBtright)
         #path = self._svg_file.path(d=(My_Path(sub2bezier3._cubicbezier, line2._line, sub1bezier4._cubicbezier, sub1frontUpCurve2._cubicbezier, sub2frontUpCurve1._cubicbezier, closed=False).d()),
         path = self._svg_file.path(d=(My_Path(sub2bezier3, line2, sub1bezier4, sub1frontUpCurve2, sub2frontUpCurve1, closed=True).d()),
                                       id = "curve"+str(curStatureIdx), 
@@ -1002,28 +945,28 @@ class Pattern_Generator(FrozenClass):
         
      def place_base_points(self):
         # Base, points
-        self._points['A'] = Point(x=0, y=0, name="A")
-        self._points['Bback'] = Point(x=0, y=-pattern._back_waist_lenght[curStatureIdx], name = "B") + pattern._points['A'] 
-        self._points['Cfront'] = Point(x=0, y=-(pattern._front_waist_lenght[curStatureIdx]-1.25), name = "C") + pattern._points['A'] 
-        self._points['Dback'] = Point(x=-0.25*pattern._bust_measurement[curStatureIdx], y=0, name = "D") + pattern._points['A'] 
-        self._points['E'] = Point(x=0, y=-0.25*(pattern._back_waist_lenght[curStatureIdx]+pattern._front_waist_lenght[curStatureIdx]), name = "E") + pattern._points['Dback'] 
-        self._points['F'] = Point(x=pattern._points['A']._x, y=pattern._points['E']._y, name="F")
-        self._points['G'] = Point(x=0.5*(pattern._points['F']._x+pattern._points['Cfront']._x), y=0.5*(pattern._points['F']._y+pattern._points['Cfront']._y), name = "G")
-        self._points['Hback'] = Point(x=-(0.8+pattern._neckline_measurement[curStatureIdx]/6), y=0, name = "H") + pattern._points['Bback']
-        self._points['Iback'] = Point(x=0, y=-(0.25*(pattern._points['Bback']._x-pattern._points['Hback']._x)), name = "I") + pattern._points['Hback']
-        self._points['Jfront'] = Point(x=pattern._points['Hback']._x, y=pattern._points['Cfront']._y, name = "J")
-        self._points['Kback'] = Point(x=pattern._points['Hback']._x, y=pattern._points['Jfront']._y+(pattern._points['Iback']._y-pattern._points['Jfront']._y)/3.0, name = "K")
+        self._points['A'] = byA_Point(x=0, y=0, name="A")
+        self._points['Bback'] = byA_Point(x=0, y=-pattern._back_waist_lenght[curStatureIdx], name = "B") + pattern._points['A'] 
+        self._points['Cfront'] = byA_Point(x=0, y=-(pattern._front_waist_lenght[curStatureIdx]-1.25), name = "C") + pattern._points['A'] 
+        self._points['Dback'] = byA_Point(x=-0.25*pattern._bust_measurement[curStatureIdx], y=0, name = "D") + pattern._points['A'] 
+        self._points['E'] = byA_Point(x=0, y=-0.25*(pattern._back_waist_lenght[curStatureIdx]+pattern._front_waist_lenght[curStatureIdx]), name = "E") + pattern._points['Dback'] 
+        self._points['F'] = byA_Point(x=pattern._points['A']._x, y=pattern._points['E']._y, name="F")
+        self._points['G'] = byA_Point(x=0.5*(pattern._points['F']._x+pattern._points['Cfront']._x), y=0.5*(pattern._points['F']._y+pattern._points['Cfront']._y), name = "G")
+        self._points['Hback'] = byA_Point(x=-(0.8+pattern._neckline_measurement[curStatureIdx]/6), y=0, name = "H") + pattern._points['Bback']
+        self._points['Iback'] = byA_Point(x=0, y=-(0.25*(pattern._points['Bback']._x-pattern._points['Hback']._x)), name = "I") + pattern._points['Hback']
+        self._points['Jfront'] = byA_Point(x=pattern._points['Hback']._x, y=pattern._points['Cfront']._y, name = "J")
+        self._points['Kback'] = byA_Point(x=pattern._points['Hback']._x, y=pattern._points['Jfront']._y+(pattern._points['Iback']._y-pattern._points['Jfront']._y)/3.0, name = "K")
         #IL**2 = IL**2 + KL**2
         kl = math.sqrt(pattern._shoulder_lenght[curStatureIdx]**2-(pattern._points['Iback']._y-pattern._points['Kback']._y)**2)
-        self._points['Lback'] = Point(x=-kl, y=0, name = "L") + pattern._points['Kback']
-        self._points['Mback'] = Point(x=-0.5*pattern._crossback_measurement[curStatureIdx], y=0, name = "M") + pattern._points['G']
-        self._points['Nfront'] = Point(x=-0.5*pattern._crossfront_measurement[curStatureIdx], y=0, name = "N") + pattern._points['G']
-        self._points['Ifront'] = Point(x=0, y=0.5, name = "I'") + pattern._points['Iback']
-        self._points['Lfront'] = Point(x=0, y=0.5, name = "L'") + pattern._points['Lback']
-        self._points['Dfront'] = Point(x=0.75, y=0, name = "D'") + pattern._points['Dback']
-        self._points['Afront'] = Point(x=0, y=pattern._front_waist_lenght[curStatureIdx], name = "A'") + pattern._points['Cfront']
-        self._points['Oback'] = Point(x=0.5*(pattern._points['A']._x+pattern._points['Dback']._x), y=0.5*(pattern._points['A']._y+pattern._points['Dback']._y), name = "O")
-        self._points['Odart'] = Point(x=pattern._points['Oback']._x, y=pattern._points['F']._y, name = "O2")
+        self._points['Lback'] = byA_Point(x=-kl, y=0, name = "L") + pattern._points['Kback']
+        self._points['Mback'] = byA_Point(x=-0.5*pattern._crossback_measurement[curStatureIdx], y=0, name = "M") + pattern._points['G']
+        self._points['Nfront'] = byA_Point(x=-0.5*pattern._crossfront_measurement[curStatureIdx], y=0, name = "N") + pattern._points['G']
+        self._points['Ifront'] = byA_Point(x=0, y=0.5, name = "I'") + pattern._points['Iback']
+        self._points['Lfront'] = byA_Point(x=0, y=0.5, name = "L'") + pattern._points['Lback']
+        self._points['Dfront'] = byA_Point(x=0.75, y=0, name = "D'") + pattern._points['Dback']
+        self._points['Afront'] = byA_Point(x=0, y=pattern._front_waist_lenght[curStatureIdx], name = "A'") + pattern._points['Cfront']
+        self._points['Oback'] = byA_Point(x=0.5*(pattern._points['A']._x+pattern._points['Dback']._x), y=0.5*(pattern._points['A']._y+pattern._points['Dback']._y), name = "O")
+        self._points['Odart'] = byA_Point(x=pattern._points['Oback']._x, y=pattern._points['F']._y, name = "O2")
         
         for pointKey, pointValue in self._points.items():
             if "back" not in pointKey:
@@ -1036,10 +979,10 @@ class Pattern_Generator(FrozenClass):
         pattern.compute_front_neckline_base_curve()
         pattern.compute_front_armhole_base_curve()
         pattern.compute_front_waist_base_curve()
-        line1 = My_Line(P1=self._points['A'], P2=self._points['Cfront'])        
-        line2 = My_Line(P1=self._points['Ifront'], P2=self._points['Lfront'])  
-        line3 = My_Line(P1=self._points['E'], P2=self._points['Dfront'])  
-        line4 = My_Line(P1=self._points['Afront'], P2=self._points['A'])  
+        line1 = byA_Line(P1=self._points['A'], P2=self._points['Cfront'])        
+        line2 = byA_Line(P1=self._points['Ifront'], P2=self._points['Lfront'])  
+        line3 = byA_Line(P1=self._points['E'], P2=self._points['Dfront'])  
+        line4 = byA_Line(P1=self._points['Afront'], P2=self._points['A'])  
         paths = My_Path(line1,self._front_neckline_base_curve,line2, self._front_armhole_base_curve,line3, self._front_waist_base_curve, line4, closed=True)
         path = self._svg_file.path(d=(paths.d()),
                                       id = g.get_id() + "Curve", 
@@ -1057,10 +1000,10 @@ class Pattern_Generator(FrozenClass):
         g = self._areas["BackAreaBase"]
         pattern.compute_back_neckline_base_curve()
         pattern.compute_back_armhole_base_curve()
-        line1 = My_Line(P1=self._points['A'], P2=self._points['Bback'])        
-        line2 = My_Line(P1=self._points['Iback'], P2=self._points['Lback'])  
-        line3 = My_Line(P1=self._points['E'], P2=self._points['Dback'])  
-        line4 = My_Line(P1=self._points['Dback'], P2=self._points['A'])  
+        line1 = byA_Line(P1=self._points['A'], P2=self._points['Bback'])        
+        line2 = byA_Line(P1=self._points['Iback'], P2=self._points['Lback'])  
+        line3 = byA_Line(P1=self._points['E'], P2=self._points['Dback'])  
+        line4 = byA_Line(P1=self._points['Dback'], P2=self._points['A'])  
         paths = My_Path(line1,self._back_neckline_base_curve,line2, self._back_armhole_base_curve,line3, line4, closed=True)
         path = self._svg_file.path(d=(paths.d()),
                                       id = g.get_id() + "Curve", 
@@ -1078,8 +1021,8 @@ class Pattern_Generator(FrozenClass):
         # Base, dart
         ad2lenght = self.get_distance(pattern._points['Dback'], pattern._points['A'])
         pince = 0.5*self._waist_measurement[curStatureIdx] - self._front_waist_base_curve_lenght - ad2lenght
-        pattern._points['Pback'] = Point(x=-0.5*pince, y=0, name = "P") + pattern._points['Oback']
-        pattern._points['Qback'] = Point(x=+0.5*pince, y=0, name = "Q") + pattern._points['Oback']
+        pattern._points['Pback'] = byA_Point(x=-0.5*pince, y=0, name = "P") + pattern._points['Oback']
+        pattern._points['Qback'] = byA_Point(x=+0.5*pince, y=0, name = "Q") + pattern._points['Oback']
         pattern.draw_line(g, pattern._points['Odart'], pattern._points['Pback'], curStatureIdx, 'thin')
         pattern.draw_line(g, pattern._points['Odart'], pattern._points['Qback'], curStatureIdx, 'thin')
 
@@ -1216,8 +1159,8 @@ if __name__ == '__main__':
         print "cleanArea"+q, "=", query["cleanArea"+q]
     padding=50
     RATIODPI = 2.54/96.0
-    paddingline = My_Line(P1=Point(x=(query["cleanAreax"]-padding)*PXCM,y=(query["cleanAreay"]-padding)*PXCM), 
-                          P2=Point(x=(query["cleanAreax"]+query["cleanAreawidth"]+padding)*PXCM,y=(query["cleanAreay"]+query["cleanAreaheight"]+padding)*PXCM))        
+    paddingline = byA_Line(P1=byA_Point(x=(query["cleanAreax"]-padding)*PXCM,y=(query["cleanAreay"]-padding)*PXCM), 
+                          P2=byA_Point(x=(query["cleanAreax"]+query["cleanAreawidth"]+padding)*PXCM,y=(query["cleanAreay"]+query["cleanAreaheight"]+padding)*PXCM))        
     paddinglinepath = My_Path(paddingline, closed=False)
     path = pattern._svg_file.path(d=(paddinglinepath.d()),
                                   id="cleanAreaPaddingDiagonal",
