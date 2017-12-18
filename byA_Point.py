@@ -5,9 +5,11 @@ Created on Mon Dec 18 15:47:50 2017
 @author: orhanda
 """
 import math
+from byA_FrozenClass import byA_FrozenClass
 
-class byA_Point():
+class byA_Point(byA_FrozenClass):
     def __init__(self,**kwargs):
+        byA_FrozenClass.__init__(self)
         self._name = kwargs.get('name', "O")
         if 'c' not in kwargs:
             self._x = kwargs.get('x', 0)
@@ -17,6 +19,7 @@ class byA_Point():
             self._x = c.real
             self._y = c.imag
         self._drawn = kwargs.get('drawn', False)
+        self._freeze("byA_Point")
         #print "Point", self._name," (", getattr(self,'_x'), ",", getattr(self,'_y'), ")"
     def __add__(self, other):  # Equivalent of + operator
         return byA_Point(x=self._x + other._x, y=self._y + other._y, name=self._name, drawn = self._drawn)
