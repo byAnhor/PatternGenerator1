@@ -10,6 +10,7 @@ from byA_Point import byA_Point
 
 class byA_CubicBezier(byA_FrozenClass):
     def __init__(self,**kwargs):
+        super(byA_CubicBezier, self).__init__(self)
         self._from = kwargs.get('P1')
         self._fromcontrol = kwargs.get('C1')
         self._tocontrol = kwargs.get('C2')

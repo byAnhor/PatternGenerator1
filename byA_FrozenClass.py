@@ -10,6 +10,7 @@ class byA_FrozenClass(object):
       already declared in __init__ method   
   """
   __isFrozen = False
+  def __init__(self, *args, **kwargs): pass
   def __setattr__(self, attr, value):
     if self.__isFrozen and not hasattr(self, attr):
       raise TypeError("%r is a frozen class, please declare attribute %r in __init__" % (self.__class__.__name__, attr))
