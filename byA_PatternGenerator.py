@@ -21,6 +21,7 @@ from byA_Point import byA_Point
 from byA_Line import byA_Line
 from byA_Path import byA_Path
 from byA_CubicBezier import byA_CubicBezier
+from byA_PDFGrid import byA_PDFGrid
 
 def makePdf(pdfFileName, listPages, w, h):
 
@@ -1131,34 +1132,17 @@ if __name__ == '__main__':
                           "--query-"+q,
                           pattern._svg_file.filename]))
         print "cleanAreaPadding"+q, "=", query["cleanAreaPadding"+q]
-        
-    # Fill the pdf area side (viewBox) with nbPdf sheets
-    s1 = 'M0,0v'+str(0.5*pdfSize[1])+'v'+str(0.5*pdfSize[1])
-    s1 += 'h'+str(0.5*pdfSize[0])+'h'+str(0.5*pdfSize[0])
-    s1 += 'v'+str(-0.5*pdfSize[1])+'v'+str(-0.5*pdfSize[1])
-    s1 += 'h'+str(-0.5*pdfSize[0])+'z'
-    for x in (1,1.1):
-      s1 += 'M0,'+str(x)+'l'+str(x)+',-'+str(x)
-      s1 += 'M0,'+str(pdfSize[1]-x)+'l'+str(x)+','+str(x)
-      s1 += 'M'+str(pdfSize[0]-x)+',0l'+str(x)+','+str(x)
-      s1 += 'M'+str(pdfSize[0]-x)+','+str(pdfSize[1])+'l'+str(x)+',-'+str(x)
-
-    onePdfSheetPath = parse_path(s1)        
-    onePdfSheet = pattern._svg_file.path(d=(onePdfSheetPath.d()), id = "sheet", stroke = "grey", stroke_linejoin = 'round', fill = 'none')
-    onePdfSheet['class'] = 'onePdfSheet'
-    #markerPath = parse_path('M0,0v20h20v-20z')
-    #marker = pattern._svg_file.marker(insert=(10,10), size=(20,20))
-    #marker.add(pattern._svg_file.path(d=(markerPath.d()), fill = 'pink'))
-    #pattern._svg_file.defs.add(marker)
-    #onePdfSheet.set_markers(marker)
     
-    for x in range(0,int(math.ceil(PXCM*query["cleanAreaPaddingwidth"]/pdfSize[0]))):
-        for y in range(0,int(math.ceil(PXCM*query["cleanAreaPaddingheight"]/pdfSize[1]))):
-            xyPdfSheet = copy.deepcopy(onePdfSheet)
-            xyPdfSheet['id'] = "sheet_" + str(x) + "_" + str(y) 
-            xyPdfSheet.translate(x*CMPX*pdfSize[0], y*CMPX*pdfSize[1])
-            pattern._areas["pdfArea"].add(xyPdfSheet)
-
+    pdfSheets = byA_PDFGrid(PDFSize = pdfSize)
+    pdfSheets.replicate(width=query["cleanAreaPaddingwidth"], height=query["cleanAreaPaddingheight"])
+    for oneSheet in pdfSheets._allPDFSheetPaths:
+        path = pattern._svg_file.path(d=oneSheet[0].d(),
+                                      id=oneSheet[1],
+                                      stroke = "grey", stroke_linejoin = 'round', fill = 'none')
+        path['class'] = 'onePdfSheet'
+        path.translate(oneSheet[2][0], oneSheet[2][1])
+        pattern._areas["pdfArea"].add(path)
+    
     pattern.save_svg()
 
     for q in ["x","y","width","height"]:
