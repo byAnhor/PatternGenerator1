@@ -22,6 +22,8 @@ from byA_Line import byA_Line
 from byA_Path import byA_Path
 from byA_CubicBezier import byA_CubicBezier
 from byA_PDFGrid import byA_PDFGrid
+from byA_PatternArea import byA_PatternArea
+from byA_SVGFile import byA_SVGFile
 
 def makePdf(pdfFileName, listPages, w, h):
 
@@ -57,6 +59,7 @@ class byA_PatternGenerator(byA_FrozenClass):
      def __init__(self,**kwargs):
         """Constructor
         """
+        byA_FrozenClass.__init__(self)
         # According to Become a pattern drafter (Claire Wargnier)
         self._stature = self.inclusive_range(110,6,2)#11)
         self._back_waist_lenght = self.inclusive_range(26.0, 1.5, len(self._stature))
@@ -99,7 +102,9 @@ class byA_PatternGenerator(byA_FrozenClass):
         self._front_waist_bodice_adjustement_curve_lenght = None 
         self.display()
         self._svg_file = None
-        self._areas = dict()
+        self._working_area = None 
+        self._clean_area = None 
+        self._all_points_area = None
         self._strokes = ['black', 'red', 'blue', 'green', 'cyan', 'orange', 'pink', 'purple', 'darkblue', 'olive', 'magenta']
         self._basic_bodice_enlargement = kwargs.get('basic_bodice_enlargement', False)
         self._points = dict()
@@ -115,34 +120,82 @@ class byA_PatternGenerator(byA_FrozenClass):
         width = int(size[0])
         height = int(size[1])
         print "width = ", width, " x height = ", height
-        self._svg_file = svgwrite.Drawing(path, profile='full', size = (str(width)+'cm', str(height)+'cm'))
-        self._svg_file.viewbox(width=str(width), height=str(height))
-        
-        svgStyle = svgwrite.container.Style()
-        svgStyle['id'] = "patternStyles"
-        svgStyle.append(' line.base {stroke-width:' + str(3*PXCM) + '; opacity:0.1}')
-        svgStyle.append(' path.base {stroke-width:' + str(3*PXCM) + '; opacity:0.1}')
-        svgStyle.append(' line.bodice {stroke-width:' + str(3*PXCM) + '}')
-        svgStyle.append(' path.bodice {stroke-width:' + str(3*PXCM) + '}')
-        svgStyle.append(' line.abdomen {stroke-width:' + str(4.5*PXCM) + '; opacity:0.1; stroke-dasharray:' + str(0.15) +','+ str(0.05) + '}')
-        svgStyle.append(' path.abdomen {stroke-width:' + str(4.5*PXCM) + '; opacity:0.1; stroke-dasharray:' + str(0.15) +','+ str(0.05) + '}')
-        svgStyle.append(' line.coat {stroke-width:' + str(6*PXCM) + ';}')
-        svgStyle.append(' path.coat {stroke-width:' + str(6*PXCM) + ';}')
-        svgStyle.append(' line.sleeve {stroke-width:' + str(3*PXCM) + ';}')
-        svgStyle.append(' path.sleeve {stroke-width:' + str(3*PXCM) + ';}')
-        
-        for sizeFigure, sizeTxt in enumerate(('thin', 'normal', 'bold')):
-            svgStyle.append(' line.' + sizeTxt + "{stroke-width : " + str((sizeFigure+1)*PXCM) + "; stroke-dasharray:" + str(0.05) +','+ str(0.05) + '}')
-            svgStyle.append(' path.' + sizeTxt + "{stroke-width : " + str((sizeFigure+1)*PXCM) + "; stroke-dasharray:" + str(0.05) +','+ str(0.05) + '}')
-        for s in self._strokes:
-            svgStyle.append(' line.' + str(s) + "{stroke : " + str(s) + ";}")
-            svgStyle.append(' path.' + str(s) + "{stroke : " + str(s) + ";}")
-        svgStyle.append(' path.onePdfSheet {stroke:orange; stroke-width:0.02;}')            
-        self._svg_file.add(svgStyle)
-        
+        self._svg_file = byA_SVGFile(filename=path, size = (str(width)+'cm', str(height)+'cm'), profile='full', strokes=self._strokes)
+                
      def save_svg(self):
         self._svg_file.save()
         
+     def create_areas(self):
+         self._working_area = byA_PatternArea(id="WorkingArea")
+         self._svg_file.add(self._working_area)
+         self._clean_area = byA_PatternArea(id="CleanArea")
+         self._svg_file.add(self._clean_area)
+         
+     def fill_working_area(self, statureIdx, allPieces, allElarg):
+         statureAreaStr = "Stature"+str(statureIdx)
+         statureArea = byA_PatternArea(id=statureAreaStr)
+         self._working_area.add(statureArea)
+         pattern._all_points_area = byA_PatternArea(id=statureAreaStr+"Points")
+         statureArea.add(pattern._all_points_area)
+         for pieceId,piece in enumerate(allPieces):
+            pieceArea = byA_PatternArea(id=statureAreaStr+piece)
+            statureArea.add(pieceArea)
+            for elargId,elarg in enumerate(allElarg):
+                elargArea = byA_PatternArea(id=statureAreaStr+piece+elarg)
+                pieceArea.add(elargArea)
+         
+ 
+     def place_base_points(self):
+        # Base, points
+        self._points.clear()
+        self._points['A'] = byA_Point(x=0, y=0, name="A")
+        self._points['Bback'] = byA_Point(x=0, y=-pattern._back_waist_lenght[curStatureIdx], name = "B") + pattern._points['A'] 
+        self._points['Cfront'] = byA_Point(x=0, y=-(pattern._front_waist_lenght[curStatureIdx]-1.25), name = "C") + pattern._points['A'] 
+        self._points['Dback'] = byA_Point(x=-0.25*pattern._bust_measurement[curStatureIdx], y=0, name = "D") + pattern._points['A'] 
+        self._points['E'] = byA_Point(x=0, y=-0.25*(pattern._back_waist_lenght[curStatureIdx]+pattern._front_waist_lenght[curStatureIdx]), name = "E") + pattern._points['Dback'] 
+        self._points['F'] = byA_Point(x=pattern._points['A']._x, y=pattern._points['E']._y, name="F")
+        self._points['G'] = byA_Point(x=0.5*(pattern._points['F']._x+pattern._points['Cfront']._x), y=0.5*(pattern._points['F']._y+pattern._points['Cfront']._y), name = "G")
+        self._points['Hback'] = byA_Point(x=-(0.8+pattern._neckline_measurement[curStatureIdx]/6), y=0, name = "H") + pattern._points['Bback']
+        self._points['Iback'] = byA_Point(x=0, y=-(0.25*(pattern._points['Bback']._x-pattern._points['Hback']._x)), name = "I") + pattern._points['Hback']
+        self._points['Jfront'] = byA_Point(x=pattern._points['Hback']._x, y=pattern._points['Cfront']._y, name = "J")
+        self._points['Kback'] = byA_Point(x=pattern._points['Hback']._x, y=pattern._points['Jfront']._y+(pattern._points['Iback']._y-pattern._points['Jfront']._y)/3.0, name = "K")
+        #IL**2 = IL**2 + KL**2
+        kl = math.sqrt(pattern._shoulder_lenght[curStatureIdx]**2-(pattern._points['Iback']._y-pattern._points['Kback']._y)**2)
+        self._points['Lback'] = byA_Point(x=-kl, y=0, name = "L") + pattern._points['Kback']
+        self._points['Mback'] = byA_Point(x=-0.5*pattern._crossback_measurement[curStatureIdx], y=0, name = "M") + pattern._points['G']
+        self._points['Nfront'] = byA_Point(x=-0.5*pattern._crossfront_measurement[curStatureIdx], y=0, name = "N") + pattern._points['G']
+        self._points['Ifront'] = byA_Point(x=0, y=0.5, name = "I'") + pattern._points['Iback']
+        self._points['Lfront'] = byA_Point(x=0, y=0.5, name = "L'") + pattern._points['Lback']
+        self._points['Dfront'] = byA_Point(x=0.75, y=0, name = "D'") + pattern._points['Dback']
+        self._points['Afront'] = byA_Point(x=0, y=pattern._front_waist_lenght[curStatureIdx], name = "A'") + pattern._points['Cfront']
+        self._points['Oback'] = byA_Point(x=0.5*(pattern._points['A']._x+pattern._points['Dback']._x), y=0.5*(pattern._points['A']._y+pattern._points['Dback']._y), name = "O")
+        self._points['Odart'] = byA_Point(x=pattern._points['Oback']._x, y=pattern._points['F']._y, name = "O2")
+        
+        for pointKey, pointValue in self._points.items():
+            self.draw_point(pattern._all_points_area, pointValue)
+
+     def draw_base_line_and_curves_front(self):
+        g = self._areas["FrontAreaBase"]
+        pattern.compute_front_neckline_base_curve()
+        pattern.compute_front_armhole_base_curve()
+        pattern.compute_front_waist_base_curve()
+        line1 = byA_Line(P1=self._points['A'], P2=self._points['Cfront'])        
+        line2 = byA_Line(P1=self._points['Ifront'], P2=self._points['Lfront'])  
+        line3 = byA_Line(P1=self._points['E'], P2=self._points['Dfront'])  
+        line4 = byA_Line(P1=self._points['Afront'], P2=self._points['A'])  
+        paths = byA_Path(line1,self._front_neckline_base_curve,line2, self._front_armhole_base_curve,line3, self._front_waist_base_curve, line4, closed=True)
+        path = self._svg_file.path(d=(paths.toStr()),
+                                      id = g.get_id() + "Curve", 
+                                      stroke_linejoin = 'round',
+                                      fill = 'none')
+        path['class'] = str(self._strokes[curStatureIdx]) + " " + 'base'
+        g.add(path)
+        self.draw_line(g, self._points['Cfront'], self._points['Jfront'], curStatureIdx, 'thin')
+        self.draw_line(g, self._points['Jfront'], self._points['Ifront'], curStatureIdx, 'thin')
+        self.draw_line(g, self._points['E'], self._points['F'], curStatureIdx, 'thin')
+        self.draw_line(g, self._points['A'], self._points['Dfront'], curStatureIdx, 'thin')
+        self.draw_line(g, self._points['G'], self._points['Nfront'], curStatureIdx, 'thin')
+
      def get_equation_line(self, src, dst):
         assert isinstance(src, byA_Point)
         assert isinstance(dst, byA_Point)
@@ -281,17 +334,17 @@ class byA_PatternGenerator(byA_FrozenClass):
 
         P2y = pTo._y
         P1y = (pThrough._y - pFrom._y*(1-t)**3 - 3*P2y*t**2*(1-t) - pTo._y*t**3) / (3*t*(1-t)**2)
-        P1x = (pFrom._x * (1+pFromCoeffA**2) + pFromCoeffA*pFromCoeffB - pFromCoeffA*P1y)
+        P1x = (pFrom._x * (1+pFromCoeffA**2) + pFromCoeffA*pFromCoeffB - pFromCoeffA*P1)
         P2x = (pThrough._x - pFrom._x*(1-t)**3 - 3*P1x*t*(1-t)**2 - pTo._x*t**3) / (3*t**2*(1-t))
         bezier = byA_CubicBezier(P1 = pFrom, C1 = byA_Point(x=P1x,y=P1y), C2 = byA_Point(x=P2x,y=P2y), P2 = pTo)
         dist = pattern.get_curve_distance(pFrom, byA_Point(x=P1x, y=P1y), byA_Point(x=P2x, y=P2y), pTo)
         return bezier, dist
 
-     def draw_point(self, group, src, svgColor='red'):
+     def draw_point(self, area, src, svgColor='red'):
         assert isinstance(src, byA_Point)
-        subgroup = group.add(self._svg_file.g(id=group.get_id()+"spot"+src._name))
-        subgroup.add(self._svg_file.circle(center=(src._x*PXCM*cm, src._y*PXCM*cm), r=str(0.03*PXCM)+'cm', fill='red'))
-        subgroup.add(self._svg_file.text(src._name, insert=((src._x+0.1)*PXCM*cm, (src._y-0.1)*PXCM*cm), fill='black'))
+        subarea = area.add_subarea("Spot"+src._name)
+        subarea.add_circle(src._x, src._y, 0.03, fill='red', )
+        subarea.add_text(src._name, src._x+0.03, src._y-0.03, class_='pointCaption')
         src._drawn = True
 
      def compute_front_neckline_base_curve(self):
@@ -299,15 +352,11 @@ class byA_PatternGenerator(byA_FrozenClass):
         equaLIa,equaLIb = pattern.get_equation_line(pattern._points['Lback'],pattern._points['Iback'])
         bh = pattern._points['Bback']._x-pattern._points['Hback']._x;
         delta = 0.1*bh
-        p1 = self._points['Cfront']
-        c1 = byA_Point(x=0.2*self._points['Cfront']._x+0.8*self._points['Jfront']._x,y=self._points['Jfront']._y)
-        c2 = byA_Point(x=self._points['Ifront']._x+delta,y=self._points['Ifront']._y-delta/equaLIa)
-        p2 = self._points['Ifront']
         print "compute_front_neckline_base_curve"
-        self._front_neckline_base_curve = byA_CubicBezier(P1 = p1,
-                              C1 = c1,
-                              C2 = c2, 
-                              P2 = p2)        
+        self._front_neckline_base_curve = byA_CubicBezier(P1 = self._points['Cfront'],
+                              C1 = byA_Point(x=0.2*self._points['Cfront']._x+0.8*self._points['Jfront']._x,y=self._points['Jfront']._y),
+                              C2 = byA_Point(x=self._points['Ifront']._x+delta,y=self._points['Ifront']._y-delta/equaLIa), 
+                              P2 = self._points['Ifront'])        
 
      def compute_back_neckline_base_curve(self):
          # back
@@ -902,59 +951,6 @@ class byA_PatternGenerator(byA_FrozenClass):
         path['class'] = str(self._strokes[curStatureIdx]) + " " + str('sleeve')
         subsSleeve["CenterSleeve"].add(path)
         
-     def place_base_points(self):
-        # Base, points
-        self._points['A'] = byA_Point(x=0, y=0, name="A")
-        self._points['Bback'] = byA_Point(x=0, y=-pattern._back_waist_lenght[curStatureIdx], name = "B") + pattern._points['A'] 
-        self._points['Cfront'] = byA_Point(x=0, y=-(pattern._front_waist_lenght[curStatureIdx]-1.25), name = "C") + pattern._points['A'] 
-        self._points['Dback'] = byA_Point(x=-0.25*pattern._bust_measurement[curStatureIdx], y=0, name = "D") + pattern._points['A'] 
-        self._points['E'] = byA_Point(x=0, y=-0.25*(pattern._back_waist_lenght[curStatureIdx]+pattern._front_waist_lenght[curStatureIdx]), name = "E") + pattern._points['Dback'] 
-        self._points['F'] = byA_Point(x=pattern._points['A']._x, y=pattern._points['E']._y, name="F")
-        self._points['G'] = byA_Point(x=0.5*(pattern._points['F']._x+pattern._points['Cfront']._x), y=0.5*(pattern._points['F']._y+pattern._points['Cfront']._y), name = "G")
-        self._points['Hback'] = byA_Point(x=-(0.8+pattern._neckline_measurement[curStatureIdx]/6), y=0, name = "H") + pattern._points['Bback']
-        self._points['Iback'] = byA_Point(x=0, y=-(0.25*(pattern._points['Bback']._x-pattern._points['Hback']._x)), name = "I") + pattern._points['Hback']
-        self._points['Jfront'] = byA_Point(x=pattern._points['Hback']._x, y=pattern._points['Cfront']._y, name = "J")
-        self._points['Kback'] = byA_Point(x=pattern._points['Hback']._x, y=pattern._points['Jfront']._y+(pattern._points['Iback']._y-pattern._points['Jfront']._y)/3.0, name = "K")
-        #IL**2 = IL**2 + KL**2
-        kl = math.sqrt(pattern._shoulder_lenght[curStatureIdx]**2-(pattern._points['Iback']._y-pattern._points['Kback']._y)**2)
-        self._points['Lback'] = byA_Point(x=-kl, y=0, name = "L") + pattern._points['Kback']
-        self._points['Mback'] = byA_Point(x=-0.5*pattern._crossback_measurement[curStatureIdx], y=0, name = "M") + pattern._points['G']
-        self._points['Nfront'] = byA_Point(x=-0.5*pattern._crossfront_measurement[curStatureIdx], y=0, name = "N") + pattern._points['G']
-        self._points['Ifront'] = byA_Point(x=0, y=0.5, name = "I'") + pattern._points['Iback']
-        self._points['Lfront'] = byA_Point(x=0, y=0.5, name = "L'") + pattern._points['Lback']
-        self._points['Dfront'] = byA_Point(x=0.75, y=0, name = "D'") + pattern._points['Dback']
-        self._points['Afront'] = byA_Point(x=0, y=pattern._front_waist_lenght[curStatureIdx], name = "A'") + pattern._points['Cfront']
-        self._points['Oback'] = byA_Point(x=0.5*(pattern._points['A']._x+pattern._points['Dback']._x), y=0.5*(pattern._points['A']._y+pattern._points['Dback']._y), name = "O")
-        self._points['Odart'] = byA_Point(x=pattern._points['Oback']._x, y=pattern._points['F']._y, name = "O2")
-        
-        for pointKey, pointValue in self._points.items():
-            if "back" not in pointKey:
-                self.draw_point(pattern._areas["FrontAreaBasePoints"], pointValue)
-            if "front" not in pointKey:
-                self.draw_point(pattern._areas["BackAreaBasePoints"], pointValue)
-
-     def draw_base_line_and_curves_front(self):
-        g = self._areas["FrontAreaBase"]
-        pattern.compute_front_neckline_base_curve()
-        pattern.compute_front_armhole_base_curve()
-        pattern.compute_front_waist_base_curve()
-        line1 = byA_Line(P1=self._points['A'], P2=self._points['Cfront'])        
-        line2 = byA_Line(P1=self._points['Ifront'], P2=self._points['Lfront'])  
-        line3 = byA_Line(P1=self._points['E'], P2=self._points['Dfront'])  
-        line4 = byA_Line(P1=self._points['Afront'], P2=self._points['A'])  
-        paths = byA_Path(line1,self._front_neckline_base_curve,line2, self._front_armhole_base_curve,line3, self._front_waist_base_curve, line4, closed=True)
-        path = self._svg_file.path(d=(paths.toStr()),
-                                      id = g.get_id() + "Curve", 
-                                      stroke_linejoin = 'round',
-                                      fill = 'none')
-        path['class'] = str(self._strokes[curStatureIdx]) + " " + 'base'
-        g.add(path)
-        self.draw_line(g, self._points['Cfront'], self._points['Jfront'], curStatureIdx, 'thin')
-        self.draw_line(g, self._points['Jfront'], self._points['Ifront'], curStatureIdx, 'thin')
-        self.draw_line(g, self._points['E'], self._points['F'], curStatureIdx, 'thin')
-        self.draw_line(g, self._points['A'], self._points['Dfront'], curStatureIdx, 'thin')
-        self.draw_line(g, self._points['G'], self._points['Nfront'], curStatureIdx, 'thin')
-
      def draw_base_line_and_curves_back(self):
         g = self._areas["BackAreaBase"]
         pattern.compute_back_neckline_base_curve()
@@ -1000,35 +996,16 @@ if __name__ == '__main__':
     pattern.open_svg("pattern.svg", pdfSize)
     
     # Creation of the working area and the pdf area
-    for id in ("pdfArea", "workingArea", "cleanAreaPadding"):
-        pattern._areas[id] = pattern._svg_file.g(id=id, font_family="serif", font_size=str(8*PXCM)+'px')
-        pattern._svg_file.add(pattern._areas[id])
-    pattern._areas["cleanArea"] = pattern._svg_file.g(id="cleanArea", font_family="serif", font_size=str(8*PXCM)+'px')
-    pattern._areas["cleanAreaPadding"].add(pattern._areas["cleanArea"])
+    pattern.create_areas()
     
     for curStatureIdx,curStature in enumerate(pattern._stature):
-        curStatureAreaStr = "stature"+str(curStatureIdx)+"Area"
-        pattern._areas[curStatureAreaStr] = pattern._svg_file.g(id="stature"+str(curStature), font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-        pattern._areas["workingArea"].add(pattern._areas[curStatureAreaStr])
-        for frontbackId,frontback in enumerate(("Front","Back")):
-            pattern._areas[frontback+"Area"] = pattern._svg_file.g(id="stature"+str(curStature)+frontback, font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-            pattern._areas[curStatureAreaStr].add(pattern._areas[frontback+"Area"])
-            pattern._areas[frontback+"Area"+"Base"] = pattern._svg_file.g(id="stature"+str(curStature)+frontback+"Base", font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-            pattern._areas[frontback+"Area"].add(pattern._areas[frontback+"Area"+"Base"])
-            pattern._areas[frontback+"Area"+"BasePoints"] = pattern._svg_file.g(id="stature"+str(curStature)+frontback+"BasePoints", font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-            pattern._areas[frontback+"Area"+"Base"].add(pattern._areas[frontback+"Area"+"BasePoints"])
-            if (pattern._basic_bodice_enlargement):
-                pattern._areas[frontback+"Area"+"BodiceEnlargement"] = pattern._svg_file.g(id="stature"+str(curStature)+frontback+"BodiceEnlargement", font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-                pattern._areas[frontback+"Area"].add(pattern._areas[frontback+"Area"+"BodiceEnlargement"])
-                pattern._areas[frontback+"Area"+"BodiceEnlargementPoints"] = pattern._svg_file.g(id="stature"+str(curStature)+frontback+"BodiceEnlargementPoints", font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-                pattern._areas[frontback+"Area"+"BodiceEnlargement"].add(pattern._areas[frontback+"Area"+"BodiceEnlargementPoints"])
-        pattern._areas["sleeveArea"] = pattern._svg_file.g(id="stature"+str(curStature)+"sleeve", font_family="serif", font_size=str(8*PXCM)+'px', fill='black')
-        pattern._areas[curStatureAreaStr].add(pattern._areas["sleeveArea"])
-
-        pattern._points.clear()
+        pattern.fill_working_area(curStature, ("Front","Back","Sleeve"), ("Base","Enlarg") if pattern._basic_bodice_enlargement else ("Base"))
+        pattern.save_svg()
         
         # Points
         pattern.place_base_points()
+
+        pattern.save_svg()
 
         # Base, lines
         pattern.draw_base_line_and_curves_front()

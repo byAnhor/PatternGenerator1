@@ -47,7 +47,6 @@ class byA_PDFGrid(byA_FrozenClass):
                 xyPdfSheet = copy.deepcopy(self._onePDFSheetPath)
                 self._allPDFSheetPaths.append([xyPdfSheet, "sheet_" + str(x) + "_" + str(y), [x*CMPX*pdfWidth, y*CMPX*pdfHeight]])
         
-    
 if __name__ == '__main__':
     
     width = int(2000)
