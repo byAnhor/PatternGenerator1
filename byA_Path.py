@@ -34,7 +34,7 @@ class byA_Path(byA_FrozenClass):
         if isinstance(value, byA_Line):
             self._segments.append(value._svgline)   
         if isinstance(value, byA_CubicBezier):
-            self._segments.append(value._cubicbezier)   
+            self._segments.append(value._cubicbezier) 
     def toStr(self):
         return self._segments.d()
 

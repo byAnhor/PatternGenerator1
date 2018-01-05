@@ -42,6 +42,7 @@ class byA_Point(byA_FrozenClass):
             self.translate(-centerot._x,-centerot._y)
             self.rotate(degre)
             self.translate(centerot._x,centerot._y)
+        return self
     def toRI(self):
         return complex(self._x,self._y)
 
