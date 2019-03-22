@@ -1,9 +1,169 @@
 """
-Created on Wed May 10 10:00:57 2017
+Created on Fri Mar 22 11:04:19 2019
 
-@author: orhanda
+@author: byAnhor
 """
 import numpy as np
+import svgwrite 
+import csv
+from byA_FrozenClass import byA_FrozenClass
+from byA_MiddleFront import byA_MiddleFront
+from byA_MiddleBack import byA_MiddleBack
+from byA_HipLine import byA_HipLine
+from byA_WaistLine import byA_WaistLine
+from byA_BustLine import byA_BustLine
+from byA_BackBustLineMark import byA_BackBustLineMark
+from byA_FrontBustLineMark import byA_FrontBustLineMark
+from byA_BackHipLineMark import byA_BackHipLineMark
+from byA_FrontHipLineMark import byA_FrontHipLineMark
+
+class byA_LineJaquePatternGenerator(byA_FrozenClass):
+
+     def __init__(self,**kwargs):
+        """Constructor
+        """
+        byA_FrozenClass.__init__(self)
+        self._liststatures = kwargs.get('liststatures', '')
+        self._currentStature = None
+        self._sheetSize = kwargs.get('sheetSize', a0Size)
+        self._filename = kwargs.get('filename', 'pattern.svg')
+        self._dicoPoints = dict()
+        self._dicoMesures = kwargs.get('dicoMesures', a0Size)        
+        w = str(self._sheetSize[0]).replace("cm","")
+        h = str(self._sheetSize[1]).replace("cm","")
+        self._svgDrawing = svgwrite.Drawing(self._filename, [str(int(w))+'cm',str(int(h))+'cm'], profile='full')
+        self._svgDrawing.viewbox(width=str(int(w)), height=str(int(h)))
+        self._Stature = dict()
+        self._MiddleFront = dict()
+        self._MiddleBack = dict()
+        self._HipLine = dict()
+        self._WaistLine = dict()
+        self._BustLine = dict()
+        self._FrontBustLineMark = dict()
+        self._BackBustLineMark = dict()
+        self._FrontHipLineMark = dict()
+        self._BackHipLineMark = dict()
+        self._freeze("byA_LineJaquePatternGenerator")
+
+     def set_currentStature(self, stature):
+        self._currentStature = stature
+        self._Stature[self._currentStature] = svgwrite.container.Group(id="groupStature"+self._currentStature)
+        self._svgDrawing.add(self._Stature[self._currentStature])
+        self._svgDrawing.save()
+         
+     def trace_MiddleFront(self):
+        self._MiddleFront[self._currentStature] = byA_MiddleFront(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupMiddleFront = svgwrite.container.Group(id="groupMiddleFront"+self._currentStature)
+        self._Stature[self._currentStature].add(groupMiddleFront)
+        self._MiddleFront[self._currentStature].addToGroup(self._svgDrawing, groupMiddleFront, id="middleFront", stroke='red', stroke_width=3)
+        self._svgDrawing.save()
+        
+     def trace_MiddleBack(self):
+        self._MiddleBack[self._currentStature] = byA_MiddleBack(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupMiddleBack = svgwrite.container.Group(id="groupMiddleBack"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupMiddleBack)
+        self._MiddleBack[self._currentStature].addToGroup(self._svgDrawing, groupMiddleBack, id="middleBack", stroke='green', stroke_width=3)
+        self._svgDrawing.save()
+
+     def trace_HipLine(self):
+        self._HipLine[self._currentStature] = byA_HipLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupHipLine = svgwrite.container.Group(id="groupHipLine"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupHipLine)
+        self._HipLine[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="hipLine", stroke='yellow', stroke_width=3)
+        self._svgDrawing.save()
+
+     def trace_WaistLine(self):
+        self._WaistLine[self._currentStature] = byA_WaistLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupWaistLine = svgwrite.container.Group(id="groupWaistLine"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupWaistLine)
+        self._WaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="waistLine", stroke='orange', stroke_width=3)
+        self._svgDrawing.save()
+
+     def trace_BustLine(self):
+        self._BustLine[self._currentStature] = byA_BustLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupBustLine = svgwrite.container.Group(id="groupBustLine"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupBustLine)
+        self._BustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="bustLine", stroke='pink', stroke_width=3)
+        self._svgDrawing.save()
+        
+     def mark_FrontBustLine(self):
+        self._FrontBustLineMark[self._currentStature] = byA_FrontBustLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupBustLine = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
+                groupBustLine = elem
+        self._FrontBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontBustMark", fill='grey', stroke='grey', stroke_width=1)
+        self._svgDrawing.save()
+
+     def mark_BackBustLine(self):
+        self._BackBustLineMark[self._currentStature] = byA_BackBustLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupBustLine = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
+                groupBustLine = elem
+        self._BackBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backBustMark", fill='grey', stroke='grey', stroke_width=1)
+        self._svgDrawing.save()
+
+     def mark_FrontHipLine(self):
+        self._FrontHipLineMark[self._currentStature] = byA_FrontHipLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupHipLine = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupHipLine")):
+                groupHipLine = elem
+        self._FrontHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="frontHipMark", fill='grey', stroke='grey', stroke_width=1)
+        self._svgDrawing.save()
+
+     def mark_BackHipLine(self):
+        self._BackHipLineMark[self._currentStature] = byA_BackHipLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupHipLine = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupHipLine")):
+                groupHipLine = elem
+        self._BackHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="backHipMark", fill='grey', stroke='grey', stroke_width=1)
+        self._svgDrawing.save()
+
+     def trace_AllStatures(self):
+        for stature in self._liststatures: 
+            print stature
+            pattern.set_currentStature(stature)
+            pattern.trace_MiddleFront()
+            pattern.trace_MiddleBack()
+            pattern.trace_HipLine()
+            pattern.trace_WaistLine()
+            pattern.trace_BustLine()
+            pattern.mark_FrontBustLine()
+            pattern.mark_BackBustLine()
+            pattern.mark_FrontHipLine()
+            pattern.mark_BackHipLine()
+
+     def save(self):
+         self._svgDrawing.save()
+
+if __name__ == '__main__':
+    
+    a0Size = np.array((841,1189))
+    squarePaperSheet = np.array((1200,1200))
+    
+    listStatures = list();
+    dicoMesures = dict();
+    with open('tableaumensurations.csv', 'rb') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for nbRow,curRow in enumerate(spamreader):
+            if (nbRow == 0):
+                for x in curRow:
+                    listStatures.append(x)
+                listStatures = listStatures[1:]
+            else:
+                for idx,stature in enumerate(listStatures):
+                    dicoMesures[curRow[0].replace(" ","")+str(stature)] = float(curRow[idx+1])
+
+    pattern = byA_LineJaquePatternGenerator(dicoMesures=dicoMesures, liststatures=listStatures, sheetSize=a0Size, filename = "test_LineJaquePatternGenerator.svg")
+    pattern.trace_AllStatures()
+    pattern.save()
+    
+    print pattern._dicoPoints
+
+
 import math
 from matplotlib.pyplot import *
 import copy
@@ -57,6 +217,7 @@ class byA_PatternGenerator(byA_FrozenClass):
         """Constructor
         """
         byA_FrozenClass.__init__(self)
+        
         # According to Become a pattern drafter (Claire Wargnier)
         self._stature = self.inclusive_range(110,6,11)#11)
         self._back_waist_lenght = self.inclusive_range(26.0, 1.5, len(self._stature))
