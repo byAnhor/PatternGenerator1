@@ -20,6 +20,8 @@ from byA_FrontBodiceLenghtLine import byA_FrontBodiceLenghtLine
 from byA_BackBodiceLenghtLine import byA_BackBodiceLenghtLine
 from byA_FrontDartBustLine import byA_FrontDartBustLine
 from byA_BackDartBustLine import byA_BackDartBustLine
+from byA_FrontDartWaistLine import byA_FrontDartWaistLine
+from byA_BackDartWaistLine import byA_BackDartWaistLine
 
 class byA_LineJaquePatternGenerator(byA_FrozenClass):
 
@@ -51,6 +53,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._BackBodiceLenghtLine = dict()
         self._FrontDartBustLine = dict()
         self._BackDartBustLine = dict()
+        self._FrontDartWaistLine = dict()
+        self._BackDartWaistLine = dict()
         self._freeze("byA_LineJaquePatternGenerator")
 
      def set_currentStature(self, stature):
@@ -162,6 +166,24 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._BackDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backDartBustMark", fill='grey', stroke='grey', stroke_width=1)
         self._svgDrawing.save()
 
+     def mark_FrontDartWaistLine(self):
+        self._FrontDartWaistLine[self._currentStature] = byA_FrontDartWaistLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupWaistLine = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupWaistLine")):
+                groupWaistLine = elem
+        self._FrontDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="frontDartWaistMark", fill='grey', stroke='grey', stroke_width=1)
+        self._svgDrawing.save()
+
+     def mark_BackDartWaistLine(self):
+        self._BackDartWaistLine[self._currentStature] = byA_BackDartWaistLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupWaistLine = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupWaistLine")):
+                groupWaistLine = elem
+        self._BackDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="backDartWaistMark", fill='grey', stroke='grey', stroke_width=1)
+        self._svgDrawing.save()
+
      def trace_AllStatures(self):
         for stature in self._liststatures: 
             print stature
@@ -179,6 +201,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
             pattern.trace_BackBodiceLenght()
             pattern.mark_FrontDartBustLine()
             pattern.mark_BackDartBustLine()
+            pattern.mark_FrontDartWaistLine()
+            pattern.mark_BackDartWaistLine()
 
      def save(self):
          self._svgDrawing.save()
