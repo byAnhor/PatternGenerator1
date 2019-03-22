@@ -46,11 +46,11 @@ class byA_HipLine(byA_FrozenClass):
         id = extra.pop("id")
         extra['id'] = id+self._stature
         svggroup.add(self._horizontalLine.toSVGWrite(drawing, **extra))
-        nomenclature = drawing.text(self._nomenclature, id="nomenclatureHipLine", insert=(self._middleBackPoint._x, self._middleBackPoint._y))
+        nomenclature = drawing.text(self._nomenclature, id="nomenclatureHipLine"+self._stature, insert=(self._middleBackPoint._x, self._middleBackPoint._y))
         svggroup.add(nomenclature)
         drawing.save()
         textw=PXCM * float(subprocess.check_output(["C:\\Program Files\\Inkscape\\inkscape.exe",
-                          "--query-id=nomenclatureHipLine", "--query-width", self._filename]))
+                          "--query-id=nomenclatureHipLine"+self._stature, "--query-width", self._filename]))
         nomenclature.translate((self._horizontalLine.lenght()-textw)/2, 0)
         nomenclature.attribs['class'] = 'nomenclature'
 

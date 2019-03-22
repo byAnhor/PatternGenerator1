@@ -16,6 +16,8 @@ from byA_BackBustLineMark import byA_BackBustLineMark
 from byA_FrontBustLineMark import byA_FrontBustLineMark
 from byA_BackHipLineMark import byA_BackHipLineMark
 from byA_FrontHipLineMark import byA_FrontHipLineMark
+from byA_FrontBodiceLenghtLine import byA_FrontBodiceLenghtLine
+from byA_BackBodiceLenghtLine import byA_BackBodiceLenghtLine
 
 class byA_LineJaquePatternGenerator(byA_FrozenClass):
 
@@ -43,6 +45,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._BackBustLineMark = dict()
         self._FrontHipLineMark = dict()
         self._BackHipLineMark = dict()
+        self._FrontBodiceLenghtLine = dict()
+        self._BackBodiceLenghtLine = dict()
         self._freeze("byA_LineJaquePatternGenerator")
 
      def set_currentStature(self, stature):
@@ -122,6 +126,20 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._BackHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="backHipMark", fill='grey', stroke='grey', stroke_width=1)
         self._svgDrawing.save()
 
+     def trace_FrontBodiceLenght(self):
+        self._FrontBodiceLenghtLine[self._currentStature] = byA_FrontBodiceLenghtLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupFrontBodiceLenghtLine = svgwrite.container.Group(id="groupFrontBodiceLenghtLine"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupFrontBodiceLenghtLine)
+        self._FrontBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontBodiceLenghtLine, id="frontBodiceLenghtLine", fill='grey', stroke='grey', stroke_width='0.5', stroke_dasharray="4,1")
+        self._svgDrawing.save()
+
+     def trace_BackBodiceLenght(self):
+        self._BackBodiceLenghtLine[self._currentStature] = byA_BackBodiceLenghtLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupBackBodiceLenghtLine = svgwrite.container.Group(id="groupBackBodiceLenghtLine"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupBackBodiceLenghtLine)
+        self._BackBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupBackBodiceLenghtLine, id="backBodiceLenghtLine", fill='grey', stroke='grey', stroke_width='0.5', stroke_dasharray="4,1")
+        self._svgDrawing.save()
+        
      def trace_AllStatures(self):
         for stature in self._liststatures: 
             print stature
@@ -135,6 +153,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
             pattern.mark_BackBustLine()
             pattern.mark_FrontHipLine()
             pattern.mark_BackHipLine()
+            pattern.trace_FrontBodiceLenght()
+            pattern.trace_BackBodiceLenght()
 
      def save(self):
          self._svgDrawing.save()

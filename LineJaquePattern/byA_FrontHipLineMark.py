@@ -52,11 +52,11 @@ class byA_FrontHipLineMark(byA_FrozenClass):
         id = extra.pop("id")
         extra['id'] = id+self._stature
         svggroup.add(self._mark.toSVGWrite(drawing, **extra))
-        nomenclature = drawing.text(self._nomenclature, id="nomenclatureFrontHipLineMark", insert=(self._mark._x, self._mark._y))
+        nomenclature = drawing.text(self._nomenclature, id="nomenclatureFrontHipLineMark"+self._stature, insert=(self._mark._x, self._mark._y))
         svggroup.add(nomenclature)
         drawing.save()
         textw=PXCM * float(subprocess.check_output(["C:\\Program Files\\Inkscape\\inkscape.exe",
-                          "--query-id=nomenclatureFrontHipLineMark", "--query-width", self._filename]))
+                          "--query-id=nomenclatureFrontHipLineMark"+self._stature, "--query-width", self._filename]))
         nomenclature.translate(textw/2,textw/2)
         nomenclature.attribs['class'] = 'nomenclature'
 

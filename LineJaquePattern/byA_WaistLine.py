@@ -48,11 +48,11 @@ class byA_WaistLine(byA_FrozenClass):
         id = extra.pop("id")
         extra['id'] = id+self._stature
         svggroup.add(self._horizontalLine.toSVGWrite(drawing, **extra))
-        nomenclature = drawing.text(self._nomenclature, id="nomenclatureWaistLine", insert=(self._middleBackPoint._x, self._middleBackPoint._y))
+        nomenclature = drawing.text(self._nomenclature, id="nomenclatureWaistLine"+self._stature, insert=(self._middleBackPoint._x, self._middleBackPoint._y))
         svggroup.add(nomenclature)
         drawing.save()
         textw=PXCM * float(subprocess.check_output(["C:\\Program Files\\Inkscape\\inkscape.exe",
-                          "--query-id=nomenclatureWaistLine", "--query-width", self._filename]))
+                          "--query-id=nomenclatureWaistLine"+self._stature, "--query-width", self._filename]))
         nomenclature.translate((self._horizontalLine.lenght()-textw)/2, 0)
         nomenclature.attribs['class'] = 'nomenclature'
 

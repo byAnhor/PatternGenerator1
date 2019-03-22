@@ -46,11 +46,11 @@ class byA_MiddleFront(byA_FrozenClass):
         id = extra.pop("id")
         extra['id'] = id+self._stature
         svggroup.add(self._verticalLine.toSVGWrite(drawing, **extra))
-        nomenclature = drawing.text(self._nomenclature, id="nomenclatureMiddleFront", insert=(self._hipsPoint._x, self._hipsPoint._y))
+        nomenclature = drawing.text(self._nomenclature, id="nomenclatureMiddleFront"+self._stature, insert=(self._hipsPoint._x, self._hipsPoint._y))
         svggroup.add(nomenclature)
         drawing.save()
         textw=PXCM * float(subprocess.check_output(["C:\\Program Files\\Inkscape\\inkscape.exe",
-                          "--query-id=nomenclatureMiddleFront", "--query-width", self._filename]))
+                          "--query-id=nomenclatureMiddleFront"+self._stature, "--query-width", self._filename]))
         nomenclature.translate(0, (self._verticalLine.lenght()+textw)/2)
         nomenclature.rotate(-90, (self._hipsPoint._x, self._hipsPoint._y))
         nomenclature.attribs['class'] = 'nomenclature'

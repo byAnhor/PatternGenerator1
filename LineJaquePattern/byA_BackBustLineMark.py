@@ -60,11 +60,11 @@ class byA_BackBustLineMark(byA_FrozenClass):
         id = extra.pop("id")
         extra['id'] = id+"ToHipLine"+self._stature
         svggroup.add(self._verticalToHipLine.toSVGWrite(drawing, **extra))
-        nomenclature = drawing.text(self._nomenclature, id="nomenclatureBackBustLineMark", insert=(self._mark._x, self._mark._y))
+        nomenclature = drawing.text(self._nomenclature, id="nomenclatureBackBustLineMark"+self._stature, insert=(self._mark._x, self._mark._y))
         svggroup.add(nomenclature)
         drawing.save()
         textw=PXCM * float(subprocess.check_output(["C:\\Program Files\\Inkscape\\inkscape.exe",
-                          "--query-id=nomenclatureBackBustLineMark", "--query-width", self._filename]))
+                          "--query-id=nomenclatureBackBustLineMark"+self._stature, "--query-width", self._filename]))
         nomenclature.translate(textw/2,textw/2)
         nomenclature.attribs['class'] = 'nomenclature'
 
