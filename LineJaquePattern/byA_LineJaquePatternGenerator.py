@@ -7,8 +7,7 @@ import numpy as np
 import svgwrite 
 import csv
 from byA_FrozenClass import byA_FrozenClass
-from byA_MiddleFront import byA_MiddleFront
-from byA_MiddleBack import byA_MiddleBack
+from byA_FB_Middle import byA_MiddleFront, byA_MiddleBack
 from byA_HipLine import byA_HipLine
 from byA_WaistLine import byA_WaistLine
 from byA_BustLine import byA_BustLine
@@ -26,6 +25,10 @@ from byA_FrontSideLine import byA_FrontSideLine
 from byA_BackSideLine import byA_BackSideLine
 from byA_FrontSideCurve import byA_FrontSideCurve
 from byA_BackSideCurve import byA_BackSideCurve
+#from byA_FrontDart import byA_FrontDart 
+#from byA_BackDart import byA_BackDart
+
+PXCM = 1.0/35.43307
 
 class byA_LineJaquePatternGenerator(byA_FrozenClass):
 
@@ -63,6 +66,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._BackSideLine = dict()
         self._FrontSideCurve = dict()
         self._BackSideCurve = dict()
+        self._FrontDart = dict()
+        self._BackDart = dict()
 
         svgStyle = svgwrite.container.Style()
         svgStyle['id'] = "LineJaquePatternStyles"
@@ -83,7 +88,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         svgStyle.append(' path.horizline {opacity:1.0; }')
 
         svgStyle.append(' circle.markwithconstructionlines {stroke:none;}')
-        svgStyle.append(' circle.markwithconstructionlines {fill:black;}')
+        #svgStyle.append(' circle.markwithconstructionlines {fill:xxx;}')
         svgStyle.append(' circle.markwithconstructionlines {opacity:0.5;}')
         
         svgStyle.append(' path.markwithconstructionlines {stroke:black;}')
@@ -92,7 +97,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         svgStyle.append(' path.markwithconstructionlines {opacity:1.0; }')
 
         svgStyle.append(' path.trace {fill:none;}')
-        svgStyle.append(' path.trace {stroke:black;}')
+        #svgStyle.append(' path.trace {stroke:xxx;}')
         svgStyle.append(' path.trace {stroke-width:' + str(25*PXCM) + ';}')
         svgStyle.append(' path.trace {opacity:1.0; }')
 
@@ -111,11 +116,9 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         #for sizeFigure, sizeTxt in enumerate(('thin', 'normal', 'bold')):
         #    svgStyle.append(' line.' + sizeTxt + "{stroke-width : " + str((sizeFigure+1)*PXCM) + "; stroke-dasharray:" + str(0.05) +','+ str(0.05) + '}')
         #    svgStyle.append(' path.' + sizeTxt + "{stroke-width : " + str((sizeFigure+1)*PXCM) + "; stroke-dasharray:" + str(0.05) +','+ str(0.05) + '}')
-        #for s in strokes:
-        #    svgStyle.append(' line.' + str(s) + "{stroke : " + str(s) + ";}")
-        #    svgStyle.append(' path.' + str(s) + "{stroke : " + str(s) + ";}")
-        #    svgStyle.append(' path.' + str(s) + "{stroke : " + str(s) + ";}")
-        #svgStyle.append(' path.onePdfSheet {stroke:orange; stroke-width:0.02;}')            
+        for s in self._liststatures:
+            svgStyle.append(' circle.stature' + str(s) + " {stroke : " + self._dicoMesures['Couleur'+str(s)] + ";}")
+            svgStyle.append(' path.stature' + str(s) + " {stroke : " + self._dicoMesures['Couleur'+str(s)] + ";}")
         self._svgDrawing.add(svgStyle)
 
         self._freeze("byA_LineJaquePatternGenerator")
@@ -167,7 +170,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
-        self._FrontBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontBustMark", class_='markwithconstructionlines')
+        self._FrontBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontBustMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_BackBustLine(self):
@@ -176,7 +179,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
-        self._BackBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backBustMark", class_='markwithconstructionlines')
+        self._BackBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backBustMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_FrontHipLine(self):
@@ -185,7 +188,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupHipLine")):
                 groupHipLine = elem
-        self._FrontHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="frontHipMark", class_='markwithconstructionlines')
+        self._FrontHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="frontHipMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_BackHipLine(self):
@@ -194,21 +197,21 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupHipLine")):
                 groupHipLine = elem
-        self._BackHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="backHipMark", class_='markwithconstructionlines')
+        self._BackHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="backHipMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def trace_FrontBodiceLenght(self):
         self._FrontBodiceLenghtLine[self._currentStature] = byA_FrontBodiceLenghtLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontBodiceLenghtLine = svgwrite.container.Group(id="groupFrontBodiceLenghtLine"+self._currentStature, debug=False)
         self._Stature[self._currentStature].add(groupFrontBodiceLenghtLine)
-        self._FrontBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontBodiceLenghtLine, id="frontBodiceLenghtLine", class_='markwithconstructionlines')
+        self._FrontBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontBodiceLenghtLine, id="frontBodiceLenghtLine", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def trace_BackBodiceLenght(self):
         self._BackBodiceLenghtLine[self._currentStature] = byA_BackBodiceLenghtLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBackBodiceLenghtLine = svgwrite.container.Group(id="groupBackBodiceLenghtLine"+self._currentStature, debug=False)
         self._Stature[self._currentStature].add(groupBackBodiceLenghtLine)
-        self._BackBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupBackBodiceLenghtLine, id="backBodiceLenghtLine", class_='markwithconstructionlines')
+        self._BackBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupBackBodiceLenghtLine, id="backBodiceLenghtLine", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
         
      def mark_FrontDartBustLine(self):
@@ -217,7 +220,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
-        self._FrontDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontDartBustMark", class_='markwithconstructionlines')
+        self._FrontDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontDartBustMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
          
      def mark_BackDartBustLine(self):
@@ -226,7 +229,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
-        self._BackDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backDartBustMark", class_='markwithconstructionlines')
+        self._BackDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backDartBustMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_FrontDartWaistLine(self):
@@ -235,7 +238,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupWaistLine")):
                 groupWaistLine = elem
-        self._FrontDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="frontDartWaistMark", class_='markwithconstructionlines')
+        self._FrontDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="frontDartWaistMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_BackDartWaistLine(self):
@@ -244,35 +247,53 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         for elem in self._Stature[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupWaistLine")):
                 groupWaistLine = elem
-        self._BackDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="backDartWaistMark", class_='markwithconstructionlines')
+        self._BackDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="backDartWaistMark", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_FrontSideLine(self):
         self._FrontSideLine[self._currentStature] = byA_FrontSideLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontSide = svgwrite.container.Group(id="groupFrontSide"+self._currentStature, debug=False)
         self._Stature[self._currentStature].add(groupFrontSide)
-        self._FrontSideLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontSide, id="frontSideLine", class_='markwithconstructionlines')
+        self._FrontSideLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontSide, id="frontSideLine", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def mark_BackSideLine(self):
         self._BackSideLine[self._currentStature] = byA_BackSideLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBackSide = svgwrite.container.Group(id="groupBackSide"+self._currentStature, debug=False)
         self._Stature[self._currentStature].add(groupBackSide)
-        self._BackSideLine[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideLine", class_='markwithconstructionlines')
+        self._BackSideLine[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideLine", class_='markwithconstructionlines stature'+self._currentStature)
         self._svgDrawing.save()
 
      def trace_FrontSideCurve(self):
         self._FrontSideCurve[self._currentStature] = byA_FrontSideCurve(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
-        groupFrontSideLine = svgwrite.container.Group(id="groupFrontSideLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupFrontSideLine)
-        self._FrontSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupFrontSideLine, id="frontSideLine", class_='trace')
+        groupFrontSide = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupFrontSide")):
+                groupFrontSide = elem
+        self._FrontSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupFrontSide, id="frontSideLine", class_='trace stature'+self._currentStature)
         self._svgDrawing.save()
 
      def trace_BackSideCurve(self):
         self._BackSideCurve[self._currentStature] = byA_BackSideCurve(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
-        groupBackSideLine = svgwrite.container.Group(id="groupBackSideLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupBackSideLine)
-        self._BackSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupBackSideLine, id="backSideLine", class_='trace')
+        groupBackSide = None
+        for elem in self._Stature[self._currentStature].elements:
+            if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBackSide")):
+                groupBackSide = elem
+        self._BackSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideLine", class_='trace stature'+self._currentStature)
+        self._svgDrawing.save()
+
+     def trace_FrontDart(self):
+        self._FrontDart[self._currentStature] = byA_FrontDart(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupFrontDart = svgwrite.container.Group(id="groupFrontDart"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupFrontDart)
+        self._FrontDart[self._currentStature].addToGroup(self._svgDrawing, groupFrontDart, id="frontSideLine", class_='trace stature'+self._currentStature)
+        self._svgDrawing.save()
+
+     def trace_BackDart(self):
+        self._BackDart[self._currentStature] = byA_BackDart(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
+        groupBackDart = svgwrite.container.Group(id="groupBackDart"+self._currentStature, debug=False)
+        self._Stature[self._currentStature].add(groupBackDart)
+        self._BackDart[self._currentStature].addToGroup(self._svgDrawing, groupBackDart, id="backSideLine", class_='trace stature'+self._currentStature)
         self._svgDrawing.save()
 
      def trace_AllStatures(self):
@@ -298,6 +319,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
             pattern.mark_BackSideLine()
             pattern.trace_FrontSideCurve()
             pattern.trace_BackSideCurve()
+            pattern.trace_FrontDart()
+            pattern.trace_BackDart()
 
      def save(self):
          self._svgDrawing.save()
@@ -318,8 +341,11 @@ if __name__ == '__main__':
                 listStatures = listStatures[1:]
             else:
                 for idx,stature in enumerate(listStatures):
-                    dicoMesures[curRow[0].replace(" ","")+str(stature)] = float(curRow[idx+1])
-
+                    if (curRow[0] != "Couleur"):
+                        dicoMesures[curRow[0].replace(" ","")+str(stature)] = float(curRow[idx+1])
+                    else:
+                        dicoMesures[curRow[0].replace(" ","")+str(stature)] = str(curRow[idx+1])
+                        
     pattern = byA_LineJaquePatternGenerator(dicoMesures=dicoMesures, liststatures=listStatures, sheetSize=a0Size, filename = "test_LineJaquePatternGenerator.svg")
     pattern.trace_AllStatures()
     pattern.save()
