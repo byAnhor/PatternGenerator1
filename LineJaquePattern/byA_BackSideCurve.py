@@ -7,10 +7,10 @@ import numpy as np
 import subprocess
 import svgwrite 
 from svgpathtools import Line
-from byA_FrozenClass import byA_FrozenClass
-from byA_Point import byA_Point
-from byA_Line import byA_Line
-from byA_CubicBezier import byA_CubicBezier
+from byA_SVGUtils.byA_FrozenClass import byA_FrozenClass
+from byA_SVGUtils.byA_Point import byA_Point
+from byA_SVGUtils.byA_Line import byA_Line
+from byA_SVGUtils.byA_CubicBezier import byA_CubicBezier
 
 PXCM = 1.0/35.43307
 HORIZONTAL_MARGIN_MM = 50

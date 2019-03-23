@@ -6,7 +6,7 @@ Created on Fri Mar 22 11:04:19 2019
 import numpy as np
 import svgwrite 
 import csv
-from byA_FrozenClass import byA_FrozenClass
+from byA_SVGUtils.byA_FrozenClass import byA_FrozenClass
 from byA_FB_Middle import byA_MiddleFront, byA_MiddleBack
 from byA_HipLine import byA_HipLine
 from byA_WaistLine import byA_WaistLine
