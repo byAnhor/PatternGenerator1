@@ -38,7 +38,51 @@ class byA_Point(byA_FrozenClass):
      def toSVGWrite(self, drawing, **extra):
         """to the svgwrite syntax
         """
-        return drawing.circle(center=(self._x,self._y), r=3, **extra)
+        return drawing.circle(center=(self._x,self._y), r=1, **extra)
+
+     def __add__(self, other):  # Equivalent of + operator
+        c = other.toRI() if isinstance(other, byA_Point) else other
+        p = byA_Point(c=self.toRI()+c)  
+        self._x = p._x
+        self._y = p._y
+        return self
+
+     def __sub__(self, other):  # Equivalent of - operator
+        c = other.toRI() if isinstance(other, byA_Point) else other
+        p = byA_Point(c=self.toRI()-c)  
+        self._x = p._x
+        self._y = p._y
+        return self
+
+     def __mul__(self, other):  # Equivalent of * operator
+        p = byA_Point(c=self.toRI()*other)
+        self._x = p._x
+        self._y = p._y
+        return self
+
+     def __rmul__(self, other):  # Equivalent of * operator
+        p = byA_Point(c=self.toRI()*other)
+        self._x = p._x
+        self._y = p._y
+        return self
+        
+     def translate(self, dx, dy):
+        self+complex(dx,dy)
+        return self
+         
+     def rotate(self, degre, origin=None):
+        if origin is None:
+            x = self._x * math.cos(math.radians(degre)) - self._y * math.sin(math.radians(degre))
+            y = self._x * math.sin(math.radians(degre)) + self._y * math.cos(math.radians(degre))
+            self._x = x
+            self._y = y
+        else:
+            c = origin.toRI() if isinstance(origin, byA_Point) else origin
+            self.translate(-c.real,-c.imag)
+            self.rotate(degre)
+            self.translate(c.real,c.imag)
+        return self
+
 
 if __name__ == '__main__':
 
@@ -46,5 +90,5 @@ if __name__ == '__main__':
     pt2 = byA_Point(x=5,y=10,name="A")
     print pt1, pt2
     print pt1.toRI(), pt2.toRI()
-    
+    print pt1.rotate(90, complex(5,6)).toRI()
     
