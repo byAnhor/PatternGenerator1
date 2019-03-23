@@ -15,8 +15,7 @@ from byA_BackBustLineMark import byA_BackBustLineMark
 from byA_FrontBustLineMark import byA_FrontBustLineMark
 from byA_BackHipLineMark import byA_BackHipLineMark
 from byA_FrontHipLineMark import byA_FrontHipLineMark
-from byA_FrontBodiceLenghtLine import byA_FrontBodiceLenghtLine
-from byA_BackBodiceLenghtLine import byA_BackBodiceLenghtLine
+from byA_FB_BodiceLenghtLine import byA_FrontBodiceLenghtLine, byA_BackBodiceLenghtLine
 from byA_FrontDartBustLine import byA_FrontDartBustLine
 from byA_BackDartBustLine import byA_BackDartBustLine
 from byA_FrontDartWaistLine import byA_FrontDartWaistLine
