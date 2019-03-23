@@ -11,8 +11,7 @@ from byA_FB_Middle import byA_MiddleFront, byA_MiddleBack
 from byA_HipLine import byA_HipLine
 from byA_WaistLine import byA_WaistLine
 from byA_BustLine import byA_BustLine
-from byA_BackBustLineMark import byA_BackBustLineMark
-from byA_FrontBustLineMark import byA_FrontBustLineMark
+from byA_FB_BustLineMark import byA_FrontBustLineMark, byA_BackBustLineMark
 from byA_BackHipLineMark import byA_BackHipLineMark
 from byA_FrontHipLineMark import byA_FrontHipLineMark
 from byA_FB_BodiceLenghtLine import byA_FrontBodiceLenghtLine, byA_BackBodiceLenghtLine
