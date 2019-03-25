@@ -7,31 +7,27 @@ import numpy as np
 import subprocess
 import svgwrite 
 from svgpathtools import Line
-from byA_SVGUtils.byA_FrozenClass import byA_FrozenClass
 from byA_SVGUtils.byA_Point import byA_Point
 from byA_SVGUtils.byA_Line import byA_Line
 from byA_SVGUtils.byA_CubicBezier import byA_CubicBezier
+from byA_PatternStep import byA_PatternStep
 
 PXCM = 1.0/35.43307
 HORIZONTAL_MARGIN_MM = 50
 VERTICAL_MARGIN_MM = 50
 a0Size = np.array((841,1189))
 
-class byA_FrontSideCurve(byA_FrozenClass):
+class byA_FrontSideCurve(byA_PatternStep):
 
      def __init__(self,**kwargs):
         """Constructor
         """
-        byA_FrozenClass.__init__(self)
-        self._parent = kwargs.get('parent', None)
-        self._filename = kwargs.get('filename')
-        self._stature = kwargs.get('stature', '')
-        self._sheetSize = kwargs.get('sheetSize', a0Size)
+        byA_PatternStep.__init__(self,**kwargs)
         
-        waistToHip = self._parent._dicoPoints['FrontSideLine_waistToHip']
-        pFromBefore = self._parent._dicoPoints['FrontDartWaistLineMark_dart1']
-        pThroughBefore = self._parent._dicoPoints['FrontSideLine_1cm']
-        pTo = self._parent._dicoPoints['FrontHipLineMark_mark']
+        waistToHip = self._parent._dicoConstruction['FrontSideLine_waistToHip']
+        pFromBefore = self._parent._dicoConstruction['FrontDartWaistLine_dart1']
+        pThroughBefore = self._parent._dicoConstruction['FrontSideLine_1cm']
+        pTo = self._parent._dicoConstruction['FrontHipLineMark_mark']
         assert isinstance(pFromBefore, byA_Point)
         assert isinstance(pTo, byA_Point)
         assert isinstance(pThroughBefore, byA_Point)
@@ -48,8 +44,9 @@ class byA_FrontSideCurve(byA_FrozenClass):
         bezierRot = byA_CubicBezier(P1 = pTo, C1 = byA_Point(x=p1Px,y=p1Py), C2 = byA_Point(x=p2Px,y=p2Py), P2 = pFromRot)
         self._waistToHipCurve = bezierRot.rotated(90, complex(pTo._x, pTo._y))
 
-        if (self._parent is not None):
-           self._parent._dicoPoints['FrontSideCurve_waistToHipCurve'] = self._waistToHipCurve
+        self._finalCurve.append(('_waistToHipCurve',self._waistToHipCurve, ''))
+
+        self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
         self._freeze("byA_FrontSideCurve")
 
      def toRI(self):
