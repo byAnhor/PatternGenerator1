@@ -10,16 +10,16 @@ from byA_SVGUtils.byA_FrozenClass import byA_FrozenClass
 from byA_HipLine import byA_HipLine
 from byA_WaistLine import byA_WaistLine
 from byA_BustLine import byA_BustLine
-from byA_FB_Middle import byA_MiddleFront, byA_MiddleBack
-from byA_FB_BustLineMark import byA_FrontBustLineMark, byA_BackBustLineMark
-from byA_FB_HipLineMark import byA_FrontHipLineMark, byA_BackHipLineMark
-from byA_FB_BodiceLenghtLine import byA_FrontBodiceLenghtLine, byA_BackBodiceLenghtLine
-from byA_FB_DartBustLine import byA_FrontDartBustLine, byA_BackDartBustLine
-from byA_FB_DartWaistLine import byA_FrontDartWaistLine, byA_BackDartWaistLine
-from byA_FB_SideLine import byA_FrontSideLine, byA_BackSideLine
+from byA_FrontAndBack.byA_FB_Middle import byA_MiddleFront, byA_MiddleBack
+from byA_FrontAndBack.byA_FB_BustLineMark import byA_FrontBustLineMark, byA_BackBustLineMark
+from byA_FrontAndBack.byA_FB_HipLineMark import byA_FrontHipLineMark, byA_BackHipLineMark
+from byA_FrontAndBack.byA_FB_BodiceLenghtLine import byA_FrontBodiceLenghtLine, byA_BackBodiceLenghtLine
+from byA_FrontAndBack.byA_FB_DartBustLine import byA_FrontDartBustLine, byA_BackDartBustLine
+from byA_FrontAndBack.byA_FB_DartWaistLine import byA_FrontDartWaistLine, byA_BackDartWaistLine
+from byA_FrontAndBack.byA_FB_SideLine import byA_FrontSideLine, byA_BackSideLine
 from byA_FrontSideCurve import byA_FrontSideCurve
 from byA_BackSideCurve import byA_BackSideCurve
-from byA_FB_Dart import byA_FrontDart, byA_BackDart
+from byA_FrontAndBack.byA_FB_Dart import byA_FrontDart, byA_BackDart
 
 PXCM = 1.0/35.43307
 
