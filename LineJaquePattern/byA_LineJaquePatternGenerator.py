@@ -17,8 +17,7 @@ from byA_FrontAndBack.byA_FB_BodiceLenghtLine import byA_FrontBodiceLenghtLine, 
 from byA_FrontAndBack.byA_FB_DartBustLine import byA_FrontDartBustLine, byA_BackDartBustLine
 from byA_FrontAndBack.byA_FB_DartWaistLine import byA_FrontDartWaistLine, byA_BackDartWaistLine
 from byA_FrontAndBack.byA_FB_SideLine import byA_FrontSideLine, byA_BackSideLine
-from byA_FrontSideCurve import byA_FrontSideCurve
-from byA_BackSideCurve import byA_BackSideCurve
+from byA_FrontAndBack.byA_FB_SideCurve import byA_FrontSideCurve, byA_BackSideCurve
 from byA_FrontAndBack.byA_FB_Dart import byA_FrontDart, byA_BackDart
 
 PXCM = 1.0/35.43307
@@ -40,6 +39,8 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._svgDrawing = svgwrite.Drawing(self._filename, [str(int(w))+'cm',str(int(h))+'cm'], profile='full')
         self._svgDrawing.viewbox(width=str(int(w)), height=str(int(h)))
         self._Stature = dict()
+        self._FrontPattern = dict()
+        self._BackPattern = dict()
         self._MiddleFront = dict()
         self._MiddleBack = dict()
         self._HipLine = dict()
@@ -132,174 +133,194 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
 
      def set_currentStature(self, stature):
         self._currentStature = stature
+
         self._Stature[self._currentStature] = svgwrite.container.Group(id="groupStature"+self._currentStature)
+        self._FrontPattern[self._currentStature] = svgwrite.container.Group(id="groupFront"+self._currentStature)
+        self._BackPattern[self._currentStature] = svgwrite.container.Group(id="groupBack"+self._currentStature)
+
         self._svgDrawing.add(self._Stature[self._currentStature])
+        self._Stature[self._currentStature].add(self._FrontPattern[self._currentStature])
+        self._Stature[self._currentStature].add(self._BackPattern[self._currentStature])
+        
         self._svgDrawing.save()
          
      def trace_MiddleFront(self):
         self._MiddleFront[self._currentStature] = byA_MiddleFront(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupMiddleFront = svgwrite.container.Group(id="groupMiddleFront"+self._currentStature)
-        self._Stature[self._currentStature].add(groupMiddleFront)
+        self._FrontPattern[self._currentStature].add(groupMiddleFront)
         self._MiddleFront[self._currentStature].addToGroup(self._svgDrawing, groupMiddleFront, id="middleFront", class_='middleline')
         self._svgDrawing.save()
         
      def trace_MiddleBack(self):
         self._MiddleBack[self._currentStature] = byA_MiddleBack(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupMiddleBack = svgwrite.container.Group(id="groupMiddleBack"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupMiddleBack)
+        self._BackPattern[self._currentStature].add(groupMiddleBack)
         self._MiddleBack[self._currentStature].addToGroup(self._svgDrawing, groupMiddleBack, id="middleBack", class_='middleline')
         self._svgDrawing.save()
 
      def trace_HipLine(self):
         self._HipLine[self._currentStature] = byA_HipLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
-        groupHipLine = svgwrite.container.Group(id="groupHipLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupHipLine)
-        self._HipLine[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="hipLine", class_='horizline')
+        for side in ('Front', 'Back'):
+            group = svgwrite.container.Group(id="groupHipLine"+side+self._currentStature, debug=False)
+            self.__getattribute__('_'+side+'Pattern')[self._currentStature].add(group)
+            self._HipLine[self._currentStature].addToGroup(self._svgDrawing, group, id="HipLine"+side, class_='horizline')
         self._svgDrawing.save()
 
      def trace_WaistLine(self):
         self._WaistLine[self._currentStature] = byA_WaistLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
-        groupWaistLine = svgwrite.container.Group(id="groupWaistLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupWaistLine)
-        self._WaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="waistLine", class_='horizline')
+        for side in ('Front', 'Back'):
+            group = svgwrite.container.Group(id="groupWaistLine"+side+self._currentStature, debug=False)
+            self.__getattribute__('_'+side+'Pattern')[self._currentStature].add(group)
+            self._WaistLine[self._currentStature].addToGroup(self._svgDrawing, group, id="WaistLine"+side, class_='horizline')
         self._svgDrawing.save()
 
      def trace_BustLine(self):
         self._BustLine[self._currentStature] = byA_BustLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
-        groupBustLine = svgwrite.container.Group(id="groupBustLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupBustLine)
-        self._BustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="bustLine", class_='horizline')
+        for side in ('Front', 'Back'):
+            group = svgwrite.container.Group(id="groupBustLine"+side+self._currentStature, debug=False)
+            self.__getattribute__('_'+side+'Pattern')[self._currentStature].add(group)
+            self._BustLine[self._currentStature].addToGroup(self._svgDrawing, group, id="BustLine"+side, class_='horizline')
         self._svgDrawing.save()
         
      def mark_FrontBustLine(self):
         self._FrontBustLineMark[self._currentStature] = byA_FrontBustLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBustLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._FrontPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
+        assert(groupBustLine is not None)
         self._FrontBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontBustMark")
         self._svgDrawing.save()
 
      def mark_BackBustLine(self):
         self._BackBustLineMark[self._currentStature] = byA_BackBustLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBustLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._BackPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
+        assert(groupBustLine is not None)
         self._BackBustLineMark[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backBustMark")
         self._svgDrawing.save()
 
      def mark_FrontHipLine(self):
         self._FrontHipLineMark[self._currentStature] = byA_FrontHipLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupHipLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._FrontPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupHipLine")):
                 groupHipLine = elem
+        assert(groupHipLine is not None)
         self._FrontHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="frontHipMark")
         self._svgDrawing.save()
 
      def mark_BackHipLine(self):
         self._BackHipLineMark[self._currentStature] = byA_BackHipLineMark(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupHipLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._BackPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupHipLine")):
                 groupHipLine = elem
+        assert(groupHipLine is not None)
         self._BackHipLineMark[self._currentStature].addToGroup(self._svgDrawing, groupHipLine, id="backHipMark")
         self._svgDrawing.save()
 
      def trace_FrontBodiceLenght(self):
         self._FrontBodiceLenghtLine[self._currentStature] = byA_FrontBodiceLenghtLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontBodiceLenghtLine = svgwrite.container.Group(id="groupFrontBodiceLenghtLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupFrontBodiceLenghtLine)
+        self._FrontPattern[self._currentStature].add(groupFrontBodiceLenghtLine)
         self._FrontBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontBodiceLenghtLine, id="frontBodiceLenghtLine")
         self._svgDrawing.save()
 
      def trace_BackBodiceLenght(self):
         self._BackBodiceLenghtLine[self._currentStature] = byA_BackBodiceLenghtLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBackBodiceLenghtLine = svgwrite.container.Group(id="groupBackBodiceLenghtLine"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupBackBodiceLenghtLine)
+        self._BackPattern[self._currentStature].add(groupBackBodiceLenghtLine)
         self._BackBodiceLenghtLine[self._currentStature].addToGroup(self._svgDrawing, groupBackBodiceLenghtLine, id="backBodiceLenghtLine")
         self._svgDrawing.save()
         
      def mark_FrontDartBustLine(self):
         self._FrontDartBustLine[self._currentStature] = byA_FrontDartBustLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBustLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._FrontPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
+        assert(groupBustLine is not None)
         self._FrontDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="frontDartBustMark")
         self._svgDrawing.save()
          
      def mark_BackDartBustLine(self):
         self._BackDartBustLine[self._currentStature] = byA_BackDartBustLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBustLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._BackPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBustLine")):
                 groupBustLine = elem
+        assert(groupBustLine is not None)
         self._BackDartBustLine[self._currentStature].addToGroup(self._svgDrawing, groupBustLine, id="backDartBustMark")
         self._svgDrawing.save()
 
      def mark_FrontDartWaistLine(self):
         self._FrontDartWaistLine[self._currentStature] = byA_FrontDartWaistLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupWaistLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._FrontPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupWaistLine")):
                 groupWaistLine = elem
+        assert(groupWaistLine is not None)
         self._FrontDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="frontDartWaistMark")
         self._svgDrawing.save()
 
      def mark_BackDartWaistLine(self):
         self._BackDartWaistLine[self._currentStature] = byA_BackDartWaistLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupWaistLine = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._BackPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupWaistLine")):
                 groupWaistLine = elem
+        assert(groupWaistLine is not None)
         self._BackDartWaistLine[self._currentStature].addToGroup(self._svgDrawing, groupWaistLine, id="backDartWaistMark")
         self._svgDrawing.save()
 
      def mark_FrontSideLine(self):
         self._FrontSideLine[self._currentStature] = byA_FrontSideLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontSide = svgwrite.container.Group(id="groupFrontSide"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupFrontSide)
+        self._FrontPattern[self._currentStature].add(groupFrontSide)
         self._FrontSideLine[self._currentStature].addToGroup(self._svgDrawing, groupFrontSide, id="frontSideLine")
         self._svgDrawing.save()
 
      def mark_BackSideLine(self):
         self._BackSideLine[self._currentStature] = byA_BackSideLine(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBackSide = svgwrite.container.Group(id="groupBackSide"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupBackSide)
+        self._BackPattern[self._currentStature].add(groupBackSide)
         self._BackSideLine[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideLine")
         self._svgDrawing.save()
 
      def trace_FrontSideCurve(self):
         self._FrontSideCurve[self._currentStature] = byA_FrontSideCurve(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontSide = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._FrontPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupFrontSide")):
                 groupFrontSide = elem
+        assert(groupFrontSide is not None)
         self._FrontSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupFrontSide, id="frontSideLine")
         self._svgDrawing.save()
 
      def trace_BackSideCurve(self):
         self._BackSideCurve[self._currentStature] = byA_BackSideCurve(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBackSide = None
-        for elem in self._Stature[self._currentStature].elements:
+        for elem in self._BackPattern[self._currentStature].elements:
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBackSide")):
                 groupBackSide = elem
+        assert(groupBackSide is not None)
         self._BackSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideLine")
         self._svgDrawing.save()
 
      def trace_FrontDart(self):
         self._FrontDart[self._currentStature] = byA_FrontDart(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontDart = svgwrite.container.Group(id="groupFrontDart"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupFrontDart)
+        self._FrontPattern[self._currentStature].add(groupFrontDart)
         self._FrontDart[self._currentStature].addToGroup(self._svgDrawing, groupFrontDart, id="frontSideLine")
         self._svgDrawing.save()
 
      def trace_BackDart(self):
         self._BackDart[self._currentStature] = byA_BackDart(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupBackDart = svgwrite.container.Group(id="groupBackDart"+self._currentStature, debug=False)
-        self._Stature[self._currentStature].add(groupBackDart)
+        self._BackPattern[self._currentStature].add(groupBackDart)
         self._BackDart[self._currentStature].addToGroup(self._svgDrawing, groupBackDart, id="backSideLine")
         self._svgDrawing.save()
 

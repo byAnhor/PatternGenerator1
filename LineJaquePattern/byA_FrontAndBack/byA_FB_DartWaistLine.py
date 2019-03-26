@@ -91,7 +91,7 @@ class byA_BackDartWaistLine(byA_FB_DartWaistLine):
         self._freeze("byA_BackDartWaistLine")
 
      def addToGroup(self, drawing, svggroup, **extra):
-         super(byA_BackDartWaistLine, self).addToGroup("Front", drawing, svggroup, **extra)
+         super(byA_BackDartWaistLine, self).addToGroup("Back", drawing, svggroup, **extra)
 
 if __name__ == '__main__':
     None

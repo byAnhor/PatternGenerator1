@@ -88,7 +88,7 @@ class byA_BackSideLine(byA_FB_SideLine):
         self._freeze("byA_BackSideLine")
 
      def addToGroup(self, drawing, svggroup, **extra):
-         super(byA_BackSideLine, self).addToGroup("Front", drawing, svggroup, **extra)
+         super(byA_BackSideLine, self).addToGroup("Back", drawing, svggroup, **extra)
 
 if __name__ == '__main__':
     None

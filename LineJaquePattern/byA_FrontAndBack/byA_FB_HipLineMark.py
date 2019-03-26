@@ -79,7 +79,7 @@ class byA_BackHipLineMark(byA_FB_HipLineMark):
         self._freeze("byA_BackHipLineMark")
 
      def addToGroup(self, drawing, svggroup, **extra):
-         super(byA_BackHipLineMark, self).addToGroup("Front", drawing, svggroup, **extra)
+         super(byA_BackHipLineMark, self).addToGroup("Back", drawing, svggroup, **extra)
         
 if __name__ == '__main__':
     None
