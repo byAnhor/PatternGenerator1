@@ -27,8 +27,8 @@ class byA_HipLine(byA_PatternStep):
         self._middleFrontPoint = byA_Point(x=self._sheetSize[0]-HORIZONTAL_MARGIN_MM, y=self._sheetSize[1]-VERTICAL_MARGIN_MM)
         self._horizontalLine = byA_Line(P1=self._middleBackPoint, P2=self._middleFrontPoint)
 
-        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint, ''))
-        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, ''))
+        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint, 'Rh'))
+        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, 'Lh'))
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'Ligne de hanches'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

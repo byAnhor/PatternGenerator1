@@ -44,7 +44,7 @@ class byA_FrontDartBustLine(byA_FB_DartBustLine):
         self._verticalToHipLine = byA_Line(P1=self._mark, P2=self._markDownToHipLine)
 
         self._constructionPoint.append(('_mark',self._mark, 'PP'))
-        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, ''))
+        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, 'PPh'))
         self._constructionLine.append(('_verticalToHipLine',self._verticalToHipLine, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
@@ -68,7 +68,7 @@ class byA_BackDartBustLine(byA_FB_DartBustLine):
         self._verticalToHipLine = byA_Line(P1=self._mark, P2=self._markDownToHipLine)
         
         self._constructionPoint.append(('_mark',self._mark, 'PP'))
-        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, ''))
+        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, 'PPh'))
         self._constructionLine.append(('_verticalToHipLine',self._verticalToHipLine, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

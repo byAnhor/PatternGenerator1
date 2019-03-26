@@ -50,14 +50,11 @@ class byA_BackSideCurve(byA_PatternStep):
         self._finalCurve.append(('_waistToHipCurve',self._waistToHipCurve, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
+        print sorted(self._parent._dicoConstruction.keys())
         self._freeze("byA_BackSideCurve")
 
      def addToGroup(self, drawing, svggroup, **extra):
-        """add a line to a SVG group
-        """     
-        oldid = extra.pop("id")
-        extra['id'] = oldid+'WaistToHipCurve'+self._stature
-        svggroup.add(self._waistToHipCurve.toSVGWrite(drawing, **extra))
+         super(byA_BackSideCurve, self).addToGroup(drawing, svggroup, **extra)
 
 if __name__ == '__main__':
     None

@@ -30,8 +30,8 @@ class byA_BustLine(byA_PatternStep):
         self._middleFrontPoint = byA_Point(x=p2._x, y=p2._y-20-tableVal) 
         self._horizontalLine = byA_Line(P1=self._middleBackPoint, P2=self._middleFrontPoint)
 
-        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint , 'O'))
-        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, ''))
+        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint , 'Lb'))
+        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, 'Rb'))
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'Ligne de poitrine'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

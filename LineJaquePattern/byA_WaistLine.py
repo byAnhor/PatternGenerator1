@@ -30,8 +30,8 @@ class byA_WaistLine(byA_PatternStep):
         self._middleFrontPoint = byA_Point(x=p2._x, y=p2._y-tableVal) 
         self._horizontalLine = byA_Line(P1=self._middleBackPoint, P2=self._middleFrontPoint)
 
-        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint , ''))
-        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, ''))
+        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint , 'Rw'))
+        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, 'Lw'))
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'Ligne de taille'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

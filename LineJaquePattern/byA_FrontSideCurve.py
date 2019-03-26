@@ -57,9 +57,7 @@ class byA_FrontSideCurve(byA_PatternStep):
      def addToGroup(self, drawing, svggroup, **extra):
         """add a line to a SVG group
         """     
-        oldid = extra.pop("id")
-        extra['id'] = oldid+'WaistToHipCurve'+self._stature
-        svggroup.add(self._waistToHipCurve.toSVGWrite(drawing, **extra))
+        super(byA_FrontSideCurve, self).addToGroup(drawing, svggroup, **extra)
 
 if __name__ == '__main__':
     None

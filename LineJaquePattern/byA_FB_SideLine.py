@@ -38,7 +38,7 @@ class byA_FrontSideLine(byA_FB_SideLine):
         byA_FB_SideLine.__init__(self,**kwargs)
         
         aMark = self._parent._dicoConstruction['FrontBustLineMark_mark']
-        waistMark = self._parent._dicoConstruction['FrontBustLineMark_mark']
+        waistMark = self._parent._dicoConstruction['FrontDartWaistLine_dart1']
         hipMark = self._parent._dicoConstruction['FrontHipLineMark_mark']
 
         self._bustToWaist = byA_Line(P1=aMark, P2=waistMark)
@@ -49,9 +49,9 @@ class byA_FrontSideLine(byA_FB_SideLine):
         self._8cm = byA_Point(x=waistMark._x-(waistToHipX*80/waistToHipLenght),y=waistMark._y+(waistToHipY*80/waistToHipLenght))
         self._1cm = byA_Point(x=self._8cm._x-10,y=self._8cm._y)
 
-        self._constructionPoint.append(('_8cm',self._8cm, ''))
-        self._constructionPoint.append(('_1cm',self._1cm, ''))
-        self._constructionLine.append(('_bustToWaist',self._bustToWaist, ''))
+        self._constructionPoint.append(('_8cm',self._8cm, 'd8'))
+        self._constructionPoint.append(('_1cm',self._1cm, 'v1'))
+        self._finalLine.append(('_bustToWaist',self._bustToWaist, ''))
         self._constructionLine.append(('_waistToHip',self._waistToHip, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
@@ -79,9 +79,9 @@ class byA_BackSideLine(byA_FB_SideLine):
         self._8cm = byA_Point(x=waistMark._x+(waistToHipX*80/waistToHipLenght),y=waistMark._y+(waistToHipY*80/waistToHipLenght))
         self._1cm = byA_Point(x=self._8cm._x+10,y=self._8cm._y)
 
-        self._constructionPoint.append(('_8cm',self._8cm, ''))
-        self._constructionPoint.append(('_1cm',self._1cm, ''))
-        self._constructionLine.append(('_bustToWaist',self._bustToWaist, ''))
+        self._constructionPoint.append(('_8cm',self._8cm, 'd8'))
+        self._constructionPoint.append(('_1cm',self._1cm, 'v1'))
+        self._finalLine.append(('_bustToWaist',self._bustToWaist, ''))
         self._constructionLine.append(('_waistToHip',self._waistToHip, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

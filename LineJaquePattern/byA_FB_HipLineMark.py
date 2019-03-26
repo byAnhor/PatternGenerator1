@@ -47,7 +47,7 @@ class byA_FrontHipLineMark(byA_FB_HipLineMark):
         tmpMark = self._parent._dicoConstruction['FrontBustLineMark_markDownToHipLine']
         self._mark = byA_Point(x=tmpMark._x-(bassin - bustCompare)/2.0, y=tmpMark._y) 
 
-        self._constructionPoint.append(('_mark',self._mark, 'C'''))
+        self._constructionPoint.append(('_mark',self._mark, 'Mf'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
         self._freeze("byA_FrontHipLineMark")
@@ -65,7 +65,7 @@ class byA_BackHipLineMark(byA_FB_HipLineMark):
         bassin = (self._parent._dicoMesures['Bassin'+self._stature] + 40) / 2.0
         # a comparer avec ce qui a deja ete calcule dans byA_FrontBustLineMark + byA_BackBustLineMark
         bustP1 = self._parent._dicoConstruction['BustLine_middleFrontPoint']
-        bustP2 = self._parent._dicoConstruction['BackBustLineMark_mark']
+        bustP2 = self._parent._dicoConstruction['FrontBustLineMark_mark']
         bustCompare = byA_Line(P1=bustP1,P2=bustP2).lenght()
         bustP3 = self._parent._dicoConstruction['BustLine_middleBackPoint']
         bustP4 = self._parent._dicoConstruction['BackBustLineMark_mark']
@@ -73,7 +73,7 @@ class byA_BackHipLineMark(byA_FB_HipLineMark):
         tmpMark = self._parent._dicoConstruction['BackBustLineMark_markDownToHipLine']
         self._mark = byA_Point(x=tmpMark._x+(bassin - bustCompare)/2.0, y=tmpMark._y) 
 
-        self._constructionPoint.append(('_mark',self._mark, 'C'''))
+        self._constructionPoint.append(('_mark',self._mark, 'Mb'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
         self._freeze("byA_BackHipLineMark")

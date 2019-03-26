@@ -59,6 +59,7 @@ class byA_PatternStep(byA_FrozenClass):
         
         for pt in self._constructionPoint:
             extra['id'] = oldid + pt[0]
+            extra['class_'] = 'constructionPoint stature'+self._stature
             svggroup.add(pt[1].toSVGWrite(drawing, **extra))
             if (pt[2] != ''):
                 nomenclatureId = extra['id']+"_Nomenclature"
@@ -74,6 +75,7 @@ class byA_PatternStep(byA_FrozenClass):
                 
         for ln in self._constructionLine:
             extra['id'] = oldid + ln[0]
+            extra['class_'] = 'constructionLine stature'+self._stature
             svggroup.add(ln[1].toSVGWrite(drawing, **extra))
             if (ln[2] != ''):
                 nomenclatureId = extra['id']+"_Nomenclature"
@@ -87,13 +89,15 @@ class byA_PatternStep(byA_FrozenClass):
                 self._query[nomenclatureId] = textw
             extra.pop("id")
 
-        for x in self._constructionCurve:
-            extra['id'] = oldid + x[0]
-            svggroup.add(x[1].toSVGWrite(drawing, **extra))
+        for cb in self._constructionCurve:
+            extra['id'] = oldid + cb[0]
+            extra['class_'] = 'constructionCurve stature'+self._stature
+            svggroup.add(cb[1].toSVGWrite(drawing, **extra))
             extra.pop("id")
 
-        for x in self._finalPoint:
+        for pt in self._finalPoint:
             extra['id'] = oldid + pt[0]
+            extra['class_'] = 'finalPoint stature'+self._stature
             svggroup.add(pt[1].toSVGWrite(drawing, **extra))
             if (pt[2] != ''):
                 nomenclatureId = extra['id']+"_Nomenclature"
@@ -109,6 +113,7 @@ class byA_PatternStep(byA_FrozenClass):
             
         for ln in self._finalLine:
             extra['id'] = oldid + ln[0]
+            extra['class_'] = 'finalLine stature'+self._stature
             svggroup.add(ln[1].toSVGWrite(drawing, **extra))
             if (ln[2] != ''):
                 nomenclatureId = extra['id']+"_Nomenclature"
@@ -122,9 +127,10 @@ class byA_PatternStep(byA_FrozenClass):
                 self._query[nomenclatureId] = textw
             extra.pop("id")
 
-        for x in self._finalCurve:
-            extra['id'] = oldid + x[0]
-            svggroup.add(x[1].toSVGWrite(drawing, **extra))
+        for cb in self._finalCurve:
+            extra['id'] = oldid + cb[0]
+            extra['class_'] = 'finalCurve stature'+self._stature
+            svggroup.add(cb[1].toSVGWrite(drawing, **extra))
             extra.pop("id")
 
 if __name__ == '__main__':

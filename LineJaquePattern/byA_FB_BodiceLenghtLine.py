@@ -40,7 +40,7 @@ class byA_FrontBodiceLenghtLine(byA_FB_BodiceLenghtLine):
         self._middlePoint = byA_Point(x=p1._x, y=p1._y-self._parent._dicoMesures['Longueurcorsagedevant'+self._stature]) 
         p2 = byA_Point(x=self._middlePoint._x-200, y=self._middlePoint._y)
         self._horizontalLine = byA_Line(P1=self._middlePoint, P2=p2)
-        self._constructionPoint.append(('_middlePoint',self._middlePoint, ''))
+        self._constructionPoint.append(('_middlePoint',self._middlePoint, 'G'))
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'coucou'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
@@ -61,7 +61,7 @@ class byA_BackBodiceLenghtLine(byA_FB_BodiceLenghtLine):
         p2 = byA_Point(x=self._middlePoint._x+200, y=self._middlePoint._y)
         self._horizontalLine = byA_Line(P1=self._middlePoint, P2=p2)
 
-        self._constructionPoint.append(('_middlePoint',self._middlePoint, ''))
+        self._constructionPoint.append(('_middlePoint',self._middlePoint, 'G'))
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'coucou'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

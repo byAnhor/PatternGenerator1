@@ -56,8 +56,8 @@ class byA_FrontBustLineMark(byA_FB_BustLineMark):
         self._markDownToHipLine = byA_Point(x=p1._x-delta, y=p2._y)
         self._verticalToHipLine = byA_Line(P1=self._mark, P2=self._markDownToHipLine)
 
-        self._constructionPoint.append(('_mark',self._mark, ''))
-        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, ''))
+        self._constructionPoint.append(('_mark',self._mark, 'BB'))
+        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, 'Bfh'))
         self._constructionLine.append(('_verticalToHipLine',self._verticalToHipLine, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
@@ -89,8 +89,8 @@ class byA_BackBustLineMark(byA_FB_BustLineMark):
         self._markDownToHipLine = byA_Point(x=p1._x+delta, y=p2._y)
         self._verticalToHipLine = byA_Line(P1=self._mark, P2=self._markDownToHipLine)
 
-        self._constructionPoint.append(('_mark',self._mark, ''))
-        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, ''))
+        self._constructionPoint.append(('_mark',self._mark, 'BB'))
+        self._constructionPoint.append(('_markDownToHipLine',self._markDownToHipLine, 'Bbh'))
         self._constructionLine.append(('_verticalToHipLine',self._verticalToHipLine, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)

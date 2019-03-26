@@ -75,10 +75,10 @@ class byA_BackDart(byA_FB_Dart):
         self._downMiddleLine =  byA_Line(P1=p4bis, P2=p2)
         self._downSideLine = byA_Line(P1=p4bis, P2=p3)
 
-        self._constructionLine.append(('_upMiddleLine',self._upMiddleLine, ''))
-        self._constructionLine.append(('_upSideLine',self._upSideLine, ''))
-        self._constructionLine.append(('_downMiddleLine',self._downMiddleLine, ''))
-        self._constructionLine.append(('_downSideLine',self._downSideLine, ''))
+        self._finalLine.append(('_upMiddleLine',self._upMiddleLine, ''))
+        self._finalLine.append(('_upSideLine',self._upSideLine, ''))
+        self._finalLine.append(('_downMiddleLine',self._downMiddleLine, ''))
+        self._finalLine.append(('_downSideLine',self._downSideLine, ''))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
         self._freeze("byA_BackDart")
