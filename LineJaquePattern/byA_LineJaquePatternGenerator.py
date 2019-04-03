@@ -5,6 +5,7 @@ Created on Fri Mar 22 11:04:19 2019
 """
 import numpy as np
 import svgwrite 
+from svgwrite.extensions import Inkscape
 import csv
 from byA_SVGUtils.byA_FrozenClass import byA_FrozenClass
 from byA_HipLine import byA_HipLine
@@ -38,6 +39,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         h = str(self._sheetSize[1]).replace("cm","")
         self._svgDrawing = svgwrite.Drawing(self._filename, [str(int(w))+'cm',str(int(h))+'cm'], profile='full')
         self._svgDrawing.viewbox(width=str(int(w)), height=str(int(h)))
+        self._inkscape = Inkscape(self._svgDrawing)
         self._Stature = dict()
         self._FrontPattern = dict()
         self._BackPattern = dict()
@@ -129,12 +131,14 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
             svgStyle.append(' path.stature' + str(s) + " {stroke : " + self._dicoMesures['Couleur'+str(s)] + ";}")
         self._svgDrawing.add(svgStyle)
 
-        self._freeze("byA_LineJaquePatternGenerator")
+        self._freeze(self.__class__.__name__)
 
      def set_currentStature(self, stature):
         self._currentStature = stature
 
-        self._Stature[self._currentStature] = svgwrite.container.Group(id="groupStature"+self._currentStature)
+        #self._Stature[self._currentStature] = svgwrite.container.Group(id="groupStature"+self._currentStature)
+        self._Stature[self._currentStature] = self._inkscape.layer(id="groupStature"+self._currentStature, label="groupStature"+self._currentStature, locked=False)
+
         self._FrontPattern[self._currentStature] = svgwrite.container.Group(id="groupFront"+self._currentStature)
         self._BackPattern[self._currentStature] = svgwrite.container.Group(id="groupBack"+self._currentStature)
 
@@ -307,14 +311,14 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
             if (isinstance(elem, svgwrite.container.Group) and elem.get_id().startswith("groupBackSide")):
                 groupBackSide = elem
         assert(groupBackSide is not None)
-        self._BackSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideLine")
+        self._BackSideCurve[self._currentStature].addToGroup(self._svgDrawing, groupBackSide, id="backSideCurve")
         self._svgDrawing.save()
 
      def trace_FrontDart(self):
         self._FrontDart[self._currentStature] = byA_FrontDart(parent=self, stature=self._currentStature, sheetSize=self._sheetSize, filename=self._filename)
         groupFrontDart = svgwrite.container.Group(id="groupFrontDart"+self._currentStature, debug=False)
         self._FrontPattern[self._currentStature].add(groupFrontDart)
-        self._FrontDart[self._currentStature].addToGroup(self._svgDrawing, groupFrontDart, id="frontSideLine")
+        self._FrontDart[self._currentStature].addToGroup(self._svgDrawing, groupFrontDart, id="frontSideCurve")
         self._svgDrawing.save()
 
      def trace_BackDart(self):
@@ -325,7 +329,7 @@ class byA_LineJaquePatternGenerator(byA_FrozenClass):
         self._svgDrawing.save()
 
      def trace_AllStatures(self):
-        for stature in self._liststatures[:1]: 
+        for stature in self._liststatures: 
             print stature
             pattern.set_currentStature(stature)
             pattern.trace_MiddleFront()

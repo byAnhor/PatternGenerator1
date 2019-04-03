@@ -5,7 +5,6 @@ Created on Fri Mar 22 11:31:58 2019
 @author: orhanda
 """
 from math import sqrt
-import svgwrite 
 from svgpathtools import Line, Path
 from byA_FrozenClass import byA_FrozenClass
 from byA_Point import byA_Point

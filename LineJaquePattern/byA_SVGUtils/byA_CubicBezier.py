@@ -4,7 +4,6 @@ Created on Mon Dec 18 16:21:05 2017
 
 @author: orhanda
 """
-import svgwrite 
 from svgpathtools import CubicBezier, Path
 from byA_FrozenClass import byA_FrozenClass
 from byA_Point import byA_Point

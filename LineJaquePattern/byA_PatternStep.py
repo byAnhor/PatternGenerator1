@@ -55,7 +55,7 @@ class byA_PatternStep(byA_FrozenClass):
      def addToGroup(self, drawing, svggroup, **extra):
         """add a line to a SVG group
         """       
-        oldid = extra.pop("id") 
+        oldid = extra.pop("id") + self._stature
         
         for pt in self._constructionPoint:
             extra['id'] = oldid + pt[0]

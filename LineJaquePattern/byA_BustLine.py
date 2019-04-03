@@ -4,9 +4,6 @@ Created on Fri Mar 22 11:04:19 2019
 @author: byAnhor
 """
 import numpy as np
-import subprocess
-import svgwrite 
-from svgpathtools import Line
 from byA_SVGUtils.byA_Point import byA_Point
 from byA_SVGUtils.byA_Line import byA_Line
 from byA_PatternStep import byA_PatternStep
@@ -35,7 +32,7 @@ class byA_BustLine(byA_PatternStep):
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'Ligne de poitrine'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
-        self._freeze("byA_BustLine")
+        self._freeze(self.__class__.__name__)
 
      def addToGroup(self, drawing, svggroup, **extra):
         """add a line to a SVG group
@@ -43,7 +40,7 @@ class byA_BustLine(byA_PatternStep):
         oldid = extra.get("id")
         super(byA_BustLine, self).addToGroup(drawing, svggroup, **extra)
         for elem in svggroup.elements:
-            if (elem.get_id() == oldid + '_horizontalLine' + '_Nomenclature'):
+            if (elem.get_id() == oldid + self._stature + '_horizontalLine' + '_Nomenclature'):
                 textw = self._query[elem.get_id()]
                 elem.translate((self._horizontalLine.lenght()-textw)/2, 0)
 

@@ -4,9 +4,6 @@ Created on Fri Mar 22 11:04:19 2019
 @author: byAnhor
 """
 import numpy as np
-import subprocess
-import svgwrite 
-from svgpathtools import Line
 from byA_SVGUtils.byA_Point import byA_Point
 from byA_SVGUtils.byA_Line import byA_Line
 from byA_PatternStep import byA_PatternStep
@@ -30,12 +27,12 @@ class byA_WaistLine(byA_PatternStep):
         self._middleFrontPoint = byA_Point(x=p2._x, y=p2._y-tableVal) 
         self._horizontalLine = byA_Line(P1=self._middleBackPoint, P2=self._middleFrontPoint)
 
-        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint , 'Rw'))
-        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, 'Lw'))
+        self._constructionPoint.append(('_middleBackPoint',self._middleBackPoint , 'Lw'))
+        self._constructionPoint.append(('_middleFrontPoint',self._middleFrontPoint, 'Rw'))
         self._constructionLine.append(('_horizontalLine',self._horizontalLine, 'Ligne de taille'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
-        self._freeze("byA_WaistLine")
+        self._freeze(self.__class__.__name__)
 
      def addToGroup(self, drawing, svggroup, **extra):
         """add a line to a SVG group
@@ -43,7 +40,7 @@ class byA_WaistLine(byA_PatternStep):
         oldid = extra.get("id")
         super(byA_WaistLine, self).addToGroup(drawing, svggroup, **extra)
         for elem in svggroup.elements:
-            if (elem.get_id() == oldid + '_horizontalLine' + '_Nomenclature'):
+            if (elem.get_id() == oldid + self._stature + '_horizontalLine' + '_Nomenclature'):
                 textw = self._query[elem.get_id()]
                 elem.translate((self._horizontalLine.lenght()-textw)/2, 0)
 

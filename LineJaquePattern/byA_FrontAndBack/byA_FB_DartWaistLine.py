@@ -4,9 +4,6 @@ Created on Fri Mar 22 11:04:19 2019
 @author: byAnhor
 """
 import numpy as np
-import subprocess
-import svgwrite 
-from svgpathtools import Line
 from byA_SVGUtils.byA_Point import byA_Point
 from byA_SVGUtils.byA_Line import byA_Line
 from byA_PatternStep import byA_PatternStep
@@ -22,7 +19,7 @@ class byA_FB_DartWaistLine(byA_PatternStep):
         """Constructor
         """
         byA_PatternStep.__init__(self,**kwargs)
-        self._freeze("byA_FB_DartWaistLine")
+        self._freeze(self.__class__.__name__+"_Parent")
 
      def addToGroup(self, frontorback, drawing, svggroup, **extra):
         """add a line to a SVG group
@@ -34,7 +31,7 @@ class byA_FrontDartWaistLine(byA_FB_DartWaistLine):
      def __init__(self,**kwargs):
         """Constructor
         """
-        byA_FB_DartWaistLine.__init__(self,**kwargs)
+        self.__class__.__bases__[0].__init__(self,**kwargs)
 
         taille = (self._parent._dicoMesures['Ceinture'+self._stature] + 30) / 2.0
         # a comparer avec ce qui a deja ete calcule dans byA_FrontDartBustLine + byA_BackDartBustLine
@@ -56,17 +53,17 @@ class byA_FrontDartWaistLine(byA_FB_DartWaistLine):
         self._constructionPoint.append(('_dart3',self._dart3, 'd3'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
-        self._freeze("byA_FrontDartWaistLine")
+        self._freeze(self.__class__.__name__)
 
      def addToGroup(self, drawing, svggroup, **extra):
-         super(byA_FrontDartWaistLine, self).addToGroup("Front", drawing, svggroup, **extra)
+         super(self.__class__, self).addToGroup("Front", drawing, svggroup, **extra)
 
 class byA_BackDartWaistLine(byA_FB_DartWaistLine):
 
      def __init__(self,**kwargs):
         """Constructor
         """
-        byA_FB_DartWaistLine.__init__(self,**kwargs)
+        self.__class__.__bases__[0].__init__(self,**kwargs)
         
         taille = (self._parent._dicoMesures['Ceinture'+self._stature] + 30) / 2.0
         # a comparer avec ce qui a deja ete calcule dans byA_FrontDartBustLine + byA_BackDartBustLine
@@ -88,10 +85,10 @@ class byA_BackDartWaistLine(byA_FB_DartWaistLine):
         self._constructionPoint.append(('_dart3',self._dart3, 'd3'))
 
         self.fillDicoPoints(self.__class__.__name__.replace("byA_",""), self._parent)
-        self._freeze("byA_BackDartWaistLine")
+        self._freeze(self.__class__.__name__)
 
      def addToGroup(self, drawing, svggroup, **extra):
-         super(byA_BackDartWaistLine, self).addToGroup("Back", drawing, svggroup, **extra)
+         super(self.__class__, self).addToGroup("Back", drawing, svggroup, **extra)
 
 if __name__ == '__main__':
     None
